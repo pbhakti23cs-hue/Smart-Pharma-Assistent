@@ -1,0 +1,1205 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Medicine - Smart Pharma Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    .add-medicine-container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #00897B, #00695C);
+        color: white;
+        padding: 35px 30px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+        margin-bottom: 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .form-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+    }
+    
+    .form-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .form-header p {
+        opacity: 0.9;
+        font-weight: 300;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 1;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    
+    .medicine-form-container {
+        background: white;
+        border-radius: 0 0 15px 15px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(0, 137, 123, 0.1);
+    }
+    
+    .form-section {
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        border-bottom: 2px solid #F0F4F8;
+        position: relative;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #00897B;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-left: 15px;
+        border-left: 5px solid #00897B;
+    }
+    
+    .section-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        background: #00897B;
+        color: white;
+        border-radius: 50%;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-right: 5px;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 25px;
+    }
+    
+    .form-field {
+        margin-bottom: 25px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #2C3E50;
+        font-size: 1rem;
+        position: relative;
+    }
+    
+    .required::after {
+        content: ' *';
+        color: #F44336;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s;
+        background: #fafafa;
+        color: #333;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #4DB6AC;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(77, 182, 172, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .form-control.error {
+        border-color: #F44336;
+        background: #FFEBEE;
+        animation: shake 0.5s;
+    }
+    
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .form-control.success {
+        border-color: #4CAF50;
+        background: #E8F5E9;
+    }
+    
+    .form-help {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: #78909C;
+        font-style: italic;
+    }
+    
+    .input-group {
+        position: relative;
+    }
+    
+    .input-group .form-control {
+        padding-right: 40px;
+    }
+    
+    .input-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #90A4AE;
+        font-size: 1.1rem;
+        pointer-events: none;
+    }
+    
+    .category-select-container {
+        position: relative;
+    }
+    
+    .category-select {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        font-size: 16px;
+        background: #fafafa;
+        color: #333;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+    
+    .category-select:focus {
+        outline: none;
+        border-color: #4DB6AC;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(77, 182, 172, 0.15);
+    }
+    
+    .select-arrow {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #90A4AE;
+        font-size: 1.2rem;
+        pointer-events: none;
+    }
+    
+    .textarea-container {
+        position: relative;
+    }
+    
+    .textarea-counter {
+        position: absolute;
+        right: 15px;
+        bottom: 15px;
+        font-size: 0.85rem;
+        color: #90A4AE;
+        background: white;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-weight: 500;
+    }
+    
+    textarea.form-control {
+        min-height: 120px;
+        resize: vertical;
+        font-family: inherit;
+        line-height: 1.5;
+    }
+    
+    textarea.form-control:focus + .textarea-counter {
+        color: #4DB6AC;
+    }
+    
+    .character-count {
+        color: #546E7A;
+        font-weight: 600;
+    }
+    
+    .character-count.warning {
+        color: #FF8F00;
+    }
+    
+    .character-count.danger {
+        color: #F44336;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 20px;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #F0F4F8;
+    }
+    
+    .submit-btn {
+        padding: 16px 40px;
+        background: linear-gradient(135deg, #00897B, #00695C);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 6px 0 #00695C;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 0 #00695C, 0 15px 25px rgba(0, 137, 123, 0.25);
+        background: linear-gradient(135deg, #00695C, #00897B);
+    }
+    
+    .submit-btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 4px 0 #00695C;
+    }
+    
+    .submit-btn.loading {
+        background: linear-gradient(135deg, #00695C, #00897B);
+        cursor: not-allowed;
+    }
+    
+    .cancel-btn {
+        padding: 16px 30px;
+        background: white;
+        color: #00897B;
+        border: 2px solid #00897B;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .cancel-btn:hover {
+        background: #E0F2F1;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info-box {
+        background: #E0F2F1;
+        border-left: 5px solid #4DB6AC;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .info-icon {
+        color: #00897B;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .info-content h4 {
+        color: #00897B;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    
+    .info-content p {
+        color: #546E7A;
+        line-height: 1.6;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+    
+    .medicine-preview {
+        background: #F8F9FA;
+        border-radius: 10px;
+        padding: 25px;
+        margin-top: 30px;
+        border: 2px dashed #B2DFDB;
+        display: none;
+    }
+    
+    .preview-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #00897B;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    .preview-item {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .preview-label {
+        font-size: 0.85rem;
+        color: #78909C;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    
+    .preview-value {
+        font-size: 1.1rem;
+        color: #2C3E50;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+    
+    .preview-value.multiline {
+        white-space: pre-line;
+        max-height: 100px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    
+    .preview-value.multiline::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .preview-value.multiline::-webkit-scrollbar-thumb {
+        background: #B2DFDB;
+        border-radius: 2px;
+    }
+    
+    .category-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        background: #E0F2F1;
+        color: #00897B;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .add-medicine-container {
+            padding: 20px 0;
+        }
+        
+        .form-header {
+            padding: 25px 20px;
+        }
+        
+        .form-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .medicine-form-container {
+            padding: 30px 25px;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .submit-btn, .cancel-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .preview-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .form-header {
+            padding: 20px 15px;
+        }
+        
+        .medicine-form-container {
+            padding: 25px 20px;
+        }
+        
+        .form-section {
+            padding-bottom: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+        }
+        
+        .info-box {
+            padding: 15px;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .preview-item {
+            padding: 12px;
+        }
+    }
+    
+    /* Animation for form sections */
+    .form-section {
+        animation: fadeInUp 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+    
+    .form-section:nth-child(1) { animation-delay: 0.1s; }
+    .form-section:nth-child(2) { animation-delay: 0.2s; }
+    .form-section:nth-child(3) { animation-delay: 0.3s; }
+    .form-section:nth-child(4) { animation-delay: 0.4s; }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Tag input for composition */
+    .tags-input-container {
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        padding: 10px;
+        background: #fafafa;
+        min-height: 52px;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .tags-input-container:focus-within {
+        border-color: #4DB6AC;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(77, 182, 172, 0.15);
+    }
+    
+    .tag {
+        display: inline-flex;
+        align-items: center;
+        background: #E0F2F1;
+        color: #00897B;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        gap: 8px;
+    }
+    
+    .tag-remove {
+        background: none;
+        border: none;
+        color: #00897B;
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0;
+        width: 18px;
+        height: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        transition: background 0.3s;
+    }
+    
+    .tag-remove:hover {
+        background: rgba(0, 137, 123, 0.2);
+    }
+    
+    .tags-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 8px;
+        background: transparent;
+        min-width: 120px;
+        font-size: 16px;
+    }
+    
+    .tags-input::placeholder {
+        color: #90A4AE;
+    }
+    
+    .tags-help {
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: #78909C;
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-medicine-container">
+    <!-- Form Header -->
+    <div class="form-header">
+        <h1><i class="fas fa-plus-circle"></i> Add New Medicine</h1>
+        
+    </div>
+    
+    
+    
+    <!-- Medicine Form -->
+    <form method="POST" action="{{ url_for('add_medicine') }}" id="medicineForm" class="medicine-form-container">
+        <!-- Section 1: Basic Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <span class="section-number">1</span>
+                <i class="fas fa-info-circle"></i> Basic Information
+            </h2>
+            
+            <div class="form-row">
+                <div class="form-field">
+                    <label class="form-label required" for="name">Medicine Name</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               id="name" 
+                               name="name" 
+                               class="form-control" 
+                               placeholder="Enter medicine name (e.g., Paracetamol)"
+                               required
+                               maxlength="100"
+                               autofocus>
+                        <span class="input-icon">
+                            <i class="fas fa-pills"></i>
+                        </span>
+                    </div>
+                    <span class="form-help">Brand or generic name of the medicine</span>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label required" for="category">Category</label>
+                    <div class="category-select-container">
+                        <select id="category" name="category" class="category-select" required>
+                            <option value="" selected disabled>Select category</option>
+                            <option value="Analgesic">Analgesic (Pain Reliever)</option>
+                            <option value="Antibiotic">Antibiotic</option>
+                            <option value="Antihistamine">Antihistamine</option>
+                            <option value="Antacid">Antacid</option>
+                            <option value="NSAID">NSAID (Non-Steroidal Anti-Inflammatory)</option>
+                            <option value="Anti-diabetic">Anti-diabetic</option>
+                            <option value="Statin">Statin (Cholesterol)</option>
+                            <option value="Thyroid hormone">Thyroid hormone</option>
+                            <option value="Bronchodilator">Bronchodilator</option>
+                            <option value="Proton pump inhibitor">Proton pump inhibitor</option>
+                            <option value="ARB">ARB (Blood Pressure)</option>
+                            <option value="SSRI">SSRI (Antidepressant)</option>
+                            <option value="Vitamin">Vitamin/Supplement</option>
+                            <option value="Other">Other</option>
+                        </select>
+                        <span class="select-arrow">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </div>
+                    <span class="form-help">Therapeutic class of the medicine</span>
+                </div>
+            </div>
+            
+            <div class="form-field">
+                <label class="form-label required" for="composition">Composition</label>
+                <div id="compositionTags" class="tags-input-container">
+                    <!-- Tags will be added here by JavaScript -->
+                    <input type="text" 
+                           id="compositionInput" 
+                           class="tags-input" 
+                           placeholder="Add active ingredients (press Enter or comma)">
+                </div>
+                <input type="hidden" id="composition" name="composition">
+                <span class="form-help">Active ingredients separated by commas (e.g., Paracetamol 500mg, Caffeine 65mg)</span>
+            </div>
+        </div>
+        
+        <!-- Section 2: Medical Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <span class="section-number">2</span>
+                <i class="fas fa-stethoscope"></i> Medical Details
+            </h2>
+            
+            <div class="form-field">
+                <label class="form-label required" for="uses">Uses & Indications</label>
+                <div class="textarea-container">
+                    <textarea id="uses" 
+                              name="uses" 
+                              class="form-control" 
+                              placeholder="Describe what conditions this medicine treats..."
+                              rows="4"
+                              maxlength="500"
+                              required></textarea>
+                    <div class="textarea-counter">
+                        <span id="usesCounter" class="character-count">0/500</span>
+                    </div>
+                </div>
+                <span class="form-help">Medical conditions, symptoms, or diseases treated by this medicine</span>
+            </div>
+            
+            <div class="form-field">
+                <label class="form-label required" for="dosage">Dosage & Administration</label>
+                <div class="textarea-container">
+                    <textarea id="dosage" 
+                              name="dosage" 
+                              class="form-control" 
+                              placeholder="Enter dosage instructions..."
+                              rows="3"
+                              maxlength="300"
+                              required></textarea>
+                    <div class="textarea-counter">
+                        <span id="dosageCounter" class="character-count">0/300</span>
+                    </div>
+                </div>
+                <span class="form-help">Recommended dosage, frequency, and administration instructions</span>
+            </div>
+        </div>
+        
+        <!-- Section 3: Safety Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <span class="section-number">3</span>
+                <i class="fas fa-exclamation-triangle"></i> Safety Information
+            </h2>
+            
+            <div class="form-field">
+                <label class="form-label" for="side_effects">Side Effects & Warnings</label>
+                <div class="textarea-container">
+                    <textarea id="side_effects" 
+                              name="side_effects" 
+                              class="form-control" 
+                              placeholder="List known side effects and warnings..."
+                              rows="4"
+                              maxlength="500"></textarea>
+                    <div class="textarea-counter">
+                        <span id="sideEffectsCounter" class="character-count">0/500</span>
+                    </div>
+                </div>
+                <span class="form-help">Common or serious side effects, precautions, and contraindications</span>
+            </div>
+        </div>
+        
+        <!-- Medicine Preview -->
+        <div class="medicine-preview" id="medicinePreview">
+            <h3 class="preview-title">
+                <i class="fas fa-eye"></i> Medicine Preview
+            </h3>
+            <div class="preview-grid">
+                <div class="preview-item">
+                    <div class="preview-label">Medicine Name</div>
+                    <div class="preview-value" id="previewName">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Category</div>
+                    <div class="preview-value" id="previewCategory">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Composition</div>
+                    <div class="preview-value" id="previewComposition">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Uses</div>
+                    <div class="preview-value multiline" id="previewUses">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Dosage</div>
+                    <div class="preview-value multiline" id="previewDosage">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Side Effects</div>
+                    <div class="preview-value multiline" id="previewSideEffects">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{{ url_for('view_medicines') }}" class="cancel-btn">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-plus-circle"></i> Add Medicine
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const form = document.getElementById('medicineForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const nameInput = document.getElementById('name');
+    const categorySelect = document.getElementById('category');
+    const compositionInput = document.getElementById('compositionInput');
+    const compositionHidden = document.getElementById('composition');
+    const compositionTags = document.getElementById('compositionTags');
+    const usesTextarea = document.getElementById('uses');
+    const dosageTextarea = document.getElementById('dosage');
+    const sideEffectsTextarea = document.getElementById('side_effects');
+    const medicinePreview = document.getElementById('medicinePreview');
+    
+    // Character counters
+    const usesCounter = document.getElementById('usesCounter');
+    const dosageCounter = document.getElementById('dosageCounter');
+    const sideEffectsCounter = document.getElementById('sideEffectsCounter');
+    
+    // Preview elements
+    const previewElements = {
+        name: document.getElementById('previewName'),
+        category: document.getElementById('previewCategory'),
+        composition: document.getElementById('previewComposition'),
+        uses: document.getElementById('previewUses'),
+        dosage: document.getElementById('previewDosage'),
+        sideEffects: document.getElementById('previewSideEffects')
+    };
+    
+    // Tags array for composition
+    let compositionTagsArray = [];
+    
+    // Initialize character counters
+    updateCharacterCounter(usesTextarea, usesCounter, 500);
+    updateCharacterCounter(dosageTextarea, dosageCounter, 300);
+    updateCharacterCounter(sideEffectsTextarea, sideEffectsCounter, 500);
+    
+    // Set up composition tags
+    setupCompositionTags();
+    
+    // Real-time validation and preview
+    const inputs = [nameInput, categorySelect, usesTextarea, dosageTextarea];
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            validateField(this);
+            updatePreview();
+        });
+        
+        input.addEventListener('change', function() {
+            validateField(this);
+            updatePreview();
+        });
+    });
+    
+    // Side effects textarea (optional)
+    sideEffectsTextarea.addEventListener('input', function() {
+        updateCharacterCounter(this, sideEffectsCounter, 500);
+        updatePreview();
+    });
+    
+    // Character counter function
+    function updateCharacterCounter(textarea, counterElement, maxLength) {
+        const length = textarea.value.length;
+        counterElement.textContent = `${length}/${maxLength}`;
+        
+        // Update color based on length
+        const percentage = (length / maxLength) * 100;
+        counterElement.className = 'character-count';
+        
+        if (percentage > 90) {
+            counterElement.classList.add('danger');
+        } else if (percentage > 75) {
+            counterElement.classList.add('warning');
+        }
+    }
+    
+    // Composition tags setup
+    function setupCompositionTags() {
+        // Add tag when user presses Enter, comma, or loses focus
+        compositionInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ',') {
+                e.preventDefault();
+                addTag(this.value.trim());
+                this.value = '';
+            }
+        });
+        
+        compositionInput.addEventListener('blur', function() {
+            if (this.value.trim()) {
+                addTag(this.value.trim());
+                this.value = '';
+            }
+        });
+        
+        // Prevent form submission when pressing Enter in composition input
+        compositionInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.stopPropagation();
+            }
+        });
+    }
+    
+    // Add a composition tag
+    function addTag(tagText) {
+        if (!tagText || compositionTagsArray.includes(tagText)) {
+            return;
+        }
+        
+        compositionTagsArray.push(tagText);
+        updateCompositionTagsDisplay();
+        validateComposition();
+        updatePreview();
+    }
+    
+    // Remove a composition tag
+    function removeTag(tagText) {
+        compositionTagsArray = compositionTagsArray.filter(tag => tag !== tagText);
+        updateCompositionTagsDisplay();
+        validateComposition();
+        updatePreview();
+    }
+    
+    // Update composition tags display
+    function updateCompositionTagsDisplay() {
+        // Clear existing tags
+        const existingTags = compositionTags.querySelectorAll('.tag');
+        existingTags.forEach(tag => tag.remove());
+        
+        // Add current tags
+        compositionTagsArray.forEach(tag => {
+            const tagElement = document.createElement('span');
+            tagElement.className = 'tag';
+            tagElement.innerHTML = `
+                ${tag}
+                <button type="button" class="tag-remove" aria-label="Remove ${tag}">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+            
+            tagElement.querySelector('.tag-remove').addEventListener('click', () => {
+                removeTag(tag);
+            });
+            
+            compositionTags.insertBefore(tagElement, compositionInput);
+        });
+        
+        // Update hidden input
+        compositionHidden.value = compositionTagsArray.join(', ');
+    }
+    
+    // Field validation functions
+    function validateField(field) {
+        const value = field.value.trim();
+        
+        if (field.required && !value) {
+            field.classList.remove('success');
+            field.classList.add('error');
+            return false;
+        }
+        
+        // Specific validations
+        if (field.id === 'name') {
+            if (value.length < 2 || value.length > 100) {
+                field.classList.remove('success');
+                field.classList.add('error');
+                return false;
+            }
+        }
+        
+        if (field.id === 'category' && value === '') {
+            field.classList.remove('success');
+            field.classList.add('error');
+            return false;
+        }
+        
+        if ((field.id === 'uses' || field.id === 'dosage') && value.length < 10) {
+            field.classList.remove('success');
+            field.classList.add('error');
+            return false;
+        }
+        
+        field.classList.remove('error');
+        field.classList.add('success');
+        return true;
+    }
+    
+    function validateComposition() {
+        if (compositionTagsArray.length === 0) {
+            compositionTags.classList.remove('success');
+            compositionTags.classList.add('error');
+            return false;
+        }
+        
+        compositionTags.classList.remove('error');
+        compositionTags.classList.add('success');
+        return true;
+    }
+    
+    // Update preview
+    function updatePreview() {
+        const name = nameInput.value.trim();
+        const category = categorySelect.value;
+        const composition = compositionTagsArray.join(', ');
+        const uses = usesTextarea.value.trim();
+        const dosage = dosageTextarea.value.trim();
+        const sideEffects = sideEffectsTextarea.value.trim();
+        
+        // Check if we have enough data to show preview
+        const hasRequiredData = name && category && composition && uses && dosage;
+        
+        if (hasRequiredData) {
+            medicinePreview.style.display = 'block';
+            
+            // Update preview values
+            previewElements.name.textContent = name || '-';
+            previewElements.category.innerHTML = category ? 
+                `<span class="category-badge">${category}</span>` : '-';
+            previewElements.composition.textContent = composition || '-';
+            previewElements.uses.textContent = uses || '-';
+            previewElements.dosage.textContent = dosage || '-';
+            previewElements.sideEffects.textContent = sideEffects || 'Not specified';
+        } else {
+            medicinePreview.style.display = 'none';
+        }
+    }
+    
+    // Auto-suggest medicine name based on category
+    categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        const nameSuggestions = {
+            'Analgesic': ['Paracetamol', 'Ibuprofen', 'Aspirin', 'Diclofenac'],
+            'Antibiotic': ['Amoxicillin', 'Azithromycin', 'Ciprofloxacin', 'Doxycycline'],
+            'Antihistamine': ['Cetirizine', 'Loratadine', 'Fexofenadine', 'Diphenhydramine'],
+            'Antacid': ['Omeprazole', 'Pantoprazole', 'Ranitidine', 'Antacid Gel'],
+            'NSAID': ['Naproxen', 'Indomethacin', 'Ketorolac', 'Meloxicam'],
+            'Anti-diabetic': ['Metformin', 'Glibenclamide', 'Insulin', 'Sitagliptin'],
+            'Statin': ['Atorvastatin', 'Rosuvastatin', 'Simvastatin', 'Pravastatin'],
+            'Thyroid hormone': ['Levothyroxine', 'Liothyronine', 'Thyroid Extract'],
+            'Bronchodilator': ['Salbutamol', 'Ipratropium', 'Theophylline', 'Montelukast'],
+            'Proton pump inhibitor': ['Esomeprazole', 'Lansoprazole', 'Rabeprazole'],
+            'ARB': ['Losartan', 'Valsartan', 'Irbesartan', 'Telmisartan'],
+            'SSRI': ['Sertraline', 'Fluoxetine', 'Escitalopram', 'Paroxetine'],
+            'Vitamin': ['Vitamin C', 'Vitamin D', 'Multivitamin', 'Calcium Supplement']
+        };
+        
+        if (nameSuggestions[category] && !nameInput.value) {
+            // Show suggestion but don't auto-fill
+            const suggestion = nameSuggestions[category][0];
+            nameInput.placeholder = `e.g., ${suggestion}`;
+        }
+        
+        updatePreview();
+    });
+    
+    // Auto-complete for composition based on medicine name
+    nameInput.addEventListener('blur', function() {
+        const medicineName = this.value.toLowerCase();
+        const compositionSuggestions = {
+            'paracetamol': ['Paracetamol 500mg'],
+            'amoxicillin': ['Amoxicillin 250mg', 'Amoxicillin 500mg'],
+            'cetirizine': ['Cetirizine 10mg'],
+            'omeprazole': ['Omeprazole 20mg', 'Omeprazole 40mg'],
+            'aspirin': ['Aspirin 75mg', 'Aspirin 325mg'],
+            'ibuprofen': ['Ibuprofen 400mg', 'Ibuprofen 600mg'],
+            'metformin': ['Metformin 500mg', 'Metformin 850mg'],
+            'atorvastatin': ['Atorvastatin 10mg', 'Atorvastatin 20mg'],
+            'levothyroxine': ['Levothyroxine 25mcg', 'Levothyroxine 50mcg'],
+            'salbutamol': ['Salbutamol 100mcg', 'Salbutamol 200mcg'],
+            'losartan': ['Losartan 50mg', 'Losartan 100mg'],
+            'sertraline': ['Sertraline 50mg', 'Sertraline 100mg']
+        };
+        
+        if (compositionTagsArray.length === 0) {
+            for (const [key, suggestions] of Object.entries(compositionSuggestions)) {
+                if (medicineName.includes(key)) {
+                    // Add first suggestion
+                    addTag(suggestions[0]);
+                    break;
+                }
+            }
+        }
+    });
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let isValid = true;
+        
+        // Validate all required fields
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isValid = false;
+            }
+        });
+        
+        // Validate composition
+        if (!validateComposition()) {
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                Please complete all required fields before submitting.
+            `;
+            
+            // Remove existing error if any
+            const existingError = form.querySelector('.alert-danger');
+            if (existingError) existingError.remove();
+            
+            form.insertBefore(errorDiv, form.firstChild);
+            
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Remove error after 5 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+            
+            return;
+        }
+        
+        // Show loading state
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding Medicine...';
+        
+        // Simulate API call delay (remove in production)
+        setTimeout(() => {
+            // Submit the form
+            form.submit();
+        }, 1500);
+    });
+    
+    // Initialize preview on load
+    updatePreview();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+Enter to submit form
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            form.requestSubmit();
+        }
+        
+        // Escape to cancel
+        if (e.key === 'Escape') {
+            if (confirm('Are you sure you want to cancel? Unsaved changes will be lost.')) {
+                window.location.href = "{{ url_for('view_medicines') }}";
+            }
+        }
+    });
+    
+    // Auto-focus on medicine name
+    nameInput.focus();
+    
+    // Add sample data button for testing (remove in production)
+    const addSampleButton = document.createElement('button');
+    addSampleButton.type = 'button';
+    addSampleButton.className = 'btn btn-secondary btn-sm';
+    addSampleButton.innerHTML = '<i class="fas fa-vial"></i> Fill Sample Data';
+    addSampleButton.style.position = 'absolute';
+    addSampleButton.style.top = '20px';
+    addSampleButton.style.right = '20px';
+    addSampleButton.style.zIndex = '10';
+    
+    addSampleButton.addEventListener('click', function() {
+        if (confirm('Fill form with sample data for testing?')) {
+            // Fill sample data
+            nameInput.value = 'Paracetamol';
+            categorySelect.value = 'Analgesic';
+            
+            // Clear existing tags and add sample
+            compositionTagsArray = ['Paracetamol 500mg'];
+            updateCompositionTagsDisplay();
+            
+            usesTextarea.value = 'Fever and mild to moderate pain relief. Effective for headaches, muscle aches, arthritis, backaches, toothaches, colds, and fevers.';
+            dosageTextarea.value = 'Adults: 500mg to 1000mg every 4 to 6 hours as needed. Maximum daily dose: 4000mg. Take with food if stomach upset occurs.';
+            sideEffectsTextarea.value = 'Common: Nausea, stomach pain, loss of appetite. Rare: Allergic reactions (rash, itching, swelling), dark urine, yellowing of eyes/skin.';
+            
+            // Trigger validation and preview
+            inputs.forEach(input => validateField(input));
+            validateComposition();
+            updateCharacterCounter(usesTextarea, usesCounter, 500);
+            updateCharacterCounter(dosageTextarea, dosageCounter, 300);
+            updateCharacterCounter(sideEffectsTextarea, sideEffectsCounter, 500);
+            updatePreview();
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    });
+    
+    // Add button to form header (for testing only)
+    document.querySelector('.form-header').style.position = 'relative';
+    document.querySelector('.form-header').appendChild(addSampleButton);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,1083 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Batch - Smart Pharma Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    .add-batch-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 30px 0;
+    }
+    
+    .form-header {
+        background: linear-gradient(135deg, #1565C0, #0D47A1);
+        color: white;
+        padding: 30px;
+        border-radius: 15px 15px 0 0;
+        text-align: center;
+        margin-bottom: 0;
+    }
+    
+    .form-header h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        font-weight: 700;
+    }
+    
+    .form-header p {
+        opacity: 0.9;
+        font-weight: 300;
+        font-size: 1.1rem;
+    }
+    
+    .batch-form-container {
+        background: white;
+        border-radius: 0 0 15px 15px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(21, 101, 192, 0.1);
+    }
+    
+    .form-section {
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        border-bottom: 2px solid #F0F4F8;
+    }
+    
+    .form-section:last-child {
+        border-bottom: none;
+        margin-bottom: 0;
+        padding-bottom: 0;
+    }
+    
+    .section-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1565C0;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-left: 15px;
+        border-left: 5px solid #1565C0;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+        margin-bottom: 25px;
+    }
+    
+    .form-field {
+        margin-bottom: 25px;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #2C3E50;
+        font-size: 1rem;
+        position: relative;
+    }
+    
+    .required::after {
+        content: ' *';
+        color: #F44336;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s;
+        background: #fafafa;
+        color: #333;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #42A5F5;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .form-control.error {
+        border-color: #F44336;
+        background: #FFEBEE;
+    }
+    
+    .form-control.success {
+        border-color: #4CAF50;
+        background: #E8F5E9;
+    }
+    
+    .form-help {
+        display: block;
+        margin-top: 8px;
+        font-size: 0.85rem;
+        color: #78909C;
+        font-style: italic;
+    }
+    
+    .input-group {
+        position: relative;
+    }
+    
+    .input-group .form-control {
+        padding-right: 40px;
+    }
+    
+    .input-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #90A4AE;
+        font-size: 1.1rem;
+        pointer-events: none;
+    }
+    
+    .medicine-select-container {
+        position: relative;
+    }
+    
+    .medicine-select {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        font-size: 16px;
+        background: #fafafa;
+        color: #333;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+    
+    .medicine-select:focus {
+        outline: none;
+        border-color: #42A5F5;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+    }
+    
+    .select-arrow {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #90A4AE;
+        font-size: 1.2rem;
+        pointer-events: none;
+    }
+    
+    .quantity-input {
+        display: flex;
+        align-items: center;
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #fafafa;
+    }
+    
+    .quantity-btn {
+        background: #E3F2FD;
+        border: none;
+        padding: 0 15px;
+        font-size: 1.5rem;
+        color: #1565C0;
+        cursor: pointer;
+        transition: background 0.3s;
+        height: 100%;
+        min-height: 52px;
+    }
+    
+    .quantity-btn:hover {
+        background: #BBDEFB;
+    }
+    
+    .quantity-input .form-control {
+        border: none;
+        border-left: 2px solid #E0E0E0;
+        border-right: 2px solid #E0E0E0;
+        border-radius: 0;
+        text-align: center;
+        background: white;
+    }
+    
+    .price-input-group {
+        position: relative;
+    }
+    
+    .price-prefix {
+        position: absolute;
+        left: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #546E7A;
+        font-weight: 600;
+        pointer-events: none;
+    }
+    
+    .price-input-group .form-control {
+        padding-left: 40px;
+    }
+    
+    .date-input-group {
+        position: relative;
+    }
+    
+    .date-icon {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #90A4AE;
+        font-size: 1.2rem;
+        pointer-events: none;
+    }
+    
+    .date-input {
+        padding-right: 45px;
+        cursor: pointer;
+    }
+    
+    .date-input::-webkit-calendar-picker-indicator {
+        background: transparent;
+        bottom: 0;
+        color: transparent;
+        cursor: pointer;
+        height: auto;
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: auto;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 20px;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #F0F4F8;
+    }
+    
+    .submit-btn {
+        padding: 16px 40px;
+        background: linear-gradient(135deg, #1565C0, #0D47A1);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 6px 0 #0D47A1;
+    }
+    
+    .submit-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 0 #0D47A1, 0 15px 25px rgba(21, 101, 192, 0.25);
+        background: linear-gradient(135deg, #0D47A1, #1565C0);
+    }
+    
+    .submit-btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 4px 0 #0D47A1;
+    }
+    
+    .submit-btn.loading {
+        background: linear-gradient(135deg, #0D47A1, #1565C0);
+        cursor: not-allowed;
+    }
+    
+    .cancel-btn {
+        padding: 16px 30px;
+        background: white;
+        color: #1565C0;
+        border: 2px solid #1565C0;
+        border-radius: 10px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        text-align: center;
+    }
+    
+    .cancel-btn:hover {
+        background: #E3F2FD;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info-box {
+        background: #E3F2FD;
+        border-left: 5px solid #42A5F5;
+        padding: 20px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .info-icon {
+        color: #1565C0;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+    
+    .info-content h4 {
+        color: #1565C0;
+        margin-bottom: 8px;
+        font-weight: 600;
+    }
+    
+    .info-content p {
+        color: #546E7A;
+        line-height: 1.6;
+        margin: 0;
+        font-size: 0.95rem;
+    }
+    
+    .batch-preview {
+        background: #F8F9FA;
+        border-radius: 10px;
+        padding: 25px;
+        margin-top: 30px;
+        border: 2px dashed #BBDEFB;
+    }
+    
+    .preview-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #1565C0;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .preview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+    
+    .preview-item {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .preview-label {
+        font-size: 0.85rem;
+        color: #78909C;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 5px;
+        font-weight: 600;
+    }
+    
+    .preview-value {
+        font-size: 1.1rem;
+        color: #2C3E50;
+        font-weight: 500;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .add-batch-container {
+            padding: 20px 0;
+        }
+        
+        .form-header {
+            padding: 25px 20px;
+        }
+        
+        .form-header h1 {
+            font-size: 1.7rem;
+        }
+        
+        .batch-form-container {
+            padding: 30px 25px;
+        }
+        
+        .form-row {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .submit-btn, .cancel-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .preview-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .form-header {
+            padding: 20px 15px;
+        }
+        
+        .batch-form-container {
+            padding: 25px 20px;
+        }
+        
+        .form-section {
+            padding-bottom: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+        }
+        
+        .info-box {
+            padding: 15px;
+        }
+    }
+    
+    /* Animation */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .slide-in {
+        animation: slideIn 0.5s ease-out;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="add-batch-container slide-in">
+    <!-- Form Header -->
+    <div class="form-header">
+        <h1><i class="fas fa-boxes"></i> Add New Medicine Batch</h1>
+        
+    </div>
+    
+   
+    
+    <!-- Batch Form -->
+    <form method="POST" action="{{ url_for('add_batch') }}" id="batchForm" class="batch-form-container">
+        <!-- Section 1: Basic Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i> Batch Information
+            </h2>
+            
+            <div class="form-row">
+                <div class="form-field">
+                    <label class="form-label required" for="batch_no">Batch Number</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               id="batch_no" 
+                               name="batch_no" 
+                               class="form-control" 
+                               placeholder="Enter batch number (e.g., BATCH2024-001)"
+                               required
+                               maxlength="50">
+                        <span class="input-icon">
+                            <i class="fas fa-barcode"></i>
+                        </span>
+                    </div>
+                    <span class="form-help">Unique identifier for this batch</span>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label required" for="medicine_id">Medicine</label>
+                    <div class="medicine-select-container">
+                        <select id="medicine_id" name="medicine_id" class="medicine-select" required>
+                            <option value="" selected disabled>Select a medicine</option>
+                            {% for medicine in medicines %}
+                            <option value="{{ medicine.id }}">{{ medicine.name }} ({{ medicine.category }})</option>
+                            {% endfor %}
+                        </select>
+                        <span class="select-arrow">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </div>
+                    <span class="form-help">Choose from available medicines</span>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-field">
+                    <label class="form-label required" for="quantity">Quantity</label>
+                    <div class="quantity-input">
+                        <button type="button" class="quantity-btn" id="decreaseQuantity">-</button>
+                        <input type="number" 
+                               id="quantity" 
+                               name="quantity" 
+                               class="form-control" 
+                               value="100" 
+                               min="1" 
+                               max="10000"
+                               required>
+                        <button type="button" class="quantity-btn" id="increaseQuantity">+</button>
+                    </div>
+                    <span class="form-help">Number of units in this batch (1-10,000)</span>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label" for="supplier">Supplier</label>
+                    <div class="input-group">
+                        <input type="text" 
+                               id="supplier" 
+                               name="supplier" 
+                               class="form-control" 
+                               placeholder="Enter supplier name"
+                               maxlength="100">
+                        <span class="input-icon">
+                            <i class="fas fa-truck"></i>
+                        </span>
+                    </div>
+                    <span class="form-help">Optional: Medicine supplier/distributor</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section 2: Pricing Information -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-rupee-sign"></i> Pricing Details
+            </h2>
+            
+            <div class="form-row">
+                <div class="form-field">
+                    <label class="form-label required" for="mrp">Maximum Retail Price (MRP)</label>
+                    <div class="price-input-group">
+                        <span class="price-prefix">₹</span>
+                        <input type="number" 
+                               id="mrp" 
+                               name="mrp" 
+                               class="form-control" 
+                               placeholder="0.00"
+                               step="0.01"
+                               min="0"
+                               max="100000"
+                               required>
+                    </div>
+                    <span class="form-help">Retail price per unit</span>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label" for="cost_price">Cost Price</label>
+                    <div class="price-input-group">
+                        <span class="price-prefix">₹</span>
+                        <input type="number" 
+                               id="cost_price" 
+                               name="cost_price" 
+                               class="form-control" 
+                               placeholder="0.00"
+                               step="0.01"
+                               min="0"
+                               max="100000">
+                    </div>
+                    <span class="form-help">Optional: Purchase price per unit</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Section 3: Manufacturing & Expiry -->
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-calendar-alt"></i> Dates & Validity
+            </h2>
+            
+            <div class="form-row">
+                <div class="form-field">
+                    <label class="form-label required" for="mfg_date">Manufacturing Date</label>
+                    <div class="date-input-group">
+                        <input type="date" 
+                               id="mfg_date" 
+                               name="mfg_date" 
+                               class="form-control date-input"
+                               required>
+                        <span class="date-icon">
+                            <i class="fas fa-calendar"></i>
+                        </span>
+                    </div>
+                    <span class="form-help">Date when the batch was manufactured</span>
+                </div>
+                
+                <div class="form-field">
+                    <label class="form-label required" for="expiry_date">Expiry Date</label>
+                    <div class="date-input-group">
+                        <input type="date" 
+                               id="expiry_date" 
+                               name="expiry_date" 
+                               class="form-control date-input"
+                               required>
+                        <span class="date-icon">
+                            <i class="fas fa-calendar-times"></i>
+                        </span>
+                    </div>
+                    <span class="form-help">Date when the batch expires</span>
+                </div>
+            </div>
+            
+            <!-- Validity Warning -->
+            <div id="validityWarning" style="display: none;" class="mt-3">
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span id="warningMessage"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Batch Preview -->
+        <div class="batch-preview" id="batchPreview" style="display: none;">
+            <h3 class="preview-title">
+                <i class="fas fa-eye"></i> Batch Preview
+            </h3>
+            <div class="preview-grid">
+                <div class="preview-item">
+                    <div class="preview-label">Batch Number</div>
+                    <div class="preview-value" id="previewBatchNo">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Medicine</div>
+                    <div class="preview-value" id="previewMedicine">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Quantity</div>
+                    <div class="preview-value" id="previewQuantity">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">MRP</div>
+                    <div class="preview-value" id="previewMRP">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Manufacturing Date</div>
+                    <div class="preview-value" id="previewMfgDate">-</div>
+                </div>
+                <div class="preview-item">
+                    <div class="preview-label">Expiry Date</div>
+                    <div class="preview-value" id="previewExpiryDate">-</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <a href="{{ url_for('view_medicines') }}" class="cancel-btn">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <i class="fas fa-plus-circle"></i> Add Batch
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const form = document.getElementById('batchForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const batchNoInput = document.getElementById('batch_no');
+    const medicineSelect = document.getElementById('medicine_id');
+    const quantityInput = document.getElementById('quantity');
+    const mrpInput = document.getElementById('mrp');
+    const costPriceInput = document.getElementById('cost_price');
+    const mfgDateInput = document.getElementById('mfg_date');
+    const expiryDateInput = document.getElementById('expiry_date');
+    const validityWarning = document.getElementById('validityWarning');
+    const warningMessage = document.getElementById('warningMessage');
+    const batchPreview = document.getElementById('batchPreview');
+    
+    // Preview elements
+    const previewElements = {
+        batchNo: document.getElementById('previewBatchNo'),
+        medicine: document.getElementById('previewMedicine'),
+        quantity: document.getElementById('previewQuantity'),
+        mrp: document.getElementById('previewMRP'),
+        mfgDate: document.getElementById('previewMfgDate'),
+        expiryDate: document.getElementById('previewExpiryDate')
+    };
+    
+    // Set default dates
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+const oneYearLater = new Date(today);
+oneYearLater.setFullYear(oneYearLater.getFullYear() + 1);
+
+// Format date as YYYY-MM-DD
+function formatDate(date) {
+    return date.toISOString().split('T')[0];
+}
+
+// Only set default dates if the fields are empty
+if (!mfgDateInput.value) {
+    mfgDateInput.value = formatDate(today);
+}
+mfgDateInput.max = formatDate(today);
+
+if (!expiryDateInput.value) {
+    expiryDateInput.value = formatDate(oneYearLater);
+}
+expiryDateInput.min = formatDate(tomorrow);
+    
+    // Quantity buttons
+    document.getElementById('increaseQuantity').addEventListener('click', function() {
+        let current = parseInt(quantityInput.value) || 0;
+        if (current < 10000) {
+            quantityInput.value = current + 1;
+            updatePreview();
+        }
+    });
+    
+    document.getElementById('decreaseQuantity').addEventListener('click', function() {
+        let current = parseInt(quantityInput.value) || 0;
+        if (current > 1) {
+            quantityInput.value = current - 1;
+            updatePreview();
+        }
+    });
+    
+    // Real-time validation and preview
+    const inputs = [batchNoInput, medicineSelect, quantityInput, mrpInput, mfgDateInput, expiryDateInput];
+    
+    inputs.forEach(input => {
+        input.addEventListener('input', function() {
+            validateField(this);
+            updatePreview();
+            checkValidity();
+        });
+        
+        input.addEventListener('change', function() {
+            validateField(this);
+            updatePreview();
+            checkValidity();
+        });
+    });
+    
+    // Cost price validation
+    costPriceInput.addEventListener('input', function() {
+        validateCostPrice();
+        updatePreview();
+    });
+    
+    // Supplier validation
+    document.getElementById('supplier').addEventListener('input', updatePreview);
+    
+    // Field validation functions
+    function validateField(field) {
+        const value = field.value.trim();
+        
+        if (field.required && !value) {
+            field.classList.remove('success');
+            field.classList.add('error');
+            return false;
+        }
+        
+        // Specific validations
+        if (field.id === 'batch_no') {
+            if (!/^[A-Za-z0-9\-_]+$/.test(value)) {
+                field.classList.remove('success');
+                field.classList.add('error');
+                return false;
+            }
+        }
+        
+        if (field.id === 'mrp' || field.id === 'cost_price') {
+            const numValue = parseFloat(value);
+            if (isNaN(numValue) || numValue < 0 || numValue > 100000) {
+                field.classList.remove('success');
+                field.classList.add('error');
+                return false;
+            }
+        }
+        
+        if (field.id === 'quantity') {
+            const numValue = parseInt(value);
+            if (isNaN(numValue) || numValue < 1 || numValue > 10000) {
+                field.classList.remove('success');
+                field.classList.add('error');
+                return false;
+            }
+        }
+        
+        if (field.id === 'expiry_date' && mfgDateInput.value) {
+            const expiry = new Date(value);
+            const mfg = new Date(mfgDateInput.value);
+            if (expiry <= mfg) {
+                field.classList.remove('success');
+                field.classList.add('error');
+                return false;
+            }
+        }
+        
+        field.classList.remove('error');
+        field.classList.add('success');
+        return true;
+    }
+    
+    function validateCostPrice() {
+        const costPrice = parseFloat(costPriceInput.value) || 0;
+        const mrp = parseFloat(mrpInput.value) || 0;
+        
+        if (costPrice > 0 && costPrice > mrp) {
+            costPriceInput.classList.remove('success');
+            costPriceInput.classList.add('error');
+            return false;
+        }
+        
+        costPriceInput.classList.remove('error');
+        if (costPrice > 0) {
+            costPriceInput.classList.add('success');
+        }
+        return true;
+    }
+    
+    function checkValidity() {
+        if (!mfgDateInput.value || !expiryDateInput.value) return;
+        
+        const mfgDate = new Date(mfgDateInput.value);
+        const expiryDate = new Date(expiryDateInput.value);
+        const today = new Date();
+        
+        // Check if expiry date is in the past
+        if (expiryDate < today) {
+            validityWarning.style.display = 'block';
+            warningMessage.textContent = '⚠️ Warning: This batch has already expired!';
+            expiryDateInput.classList.add('error');
+            return;
+        }
+        
+        // Check if expiry is within 30 days
+        const thirtyDaysFromNow = new Date(today);
+        thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
+        
+        if (expiryDate <= thirtyDaysFromNow) {
+            validityWarning.style.display = 'block';
+            const daysUntilExpiry = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
+            warningMessage.textContent = `⚠️ Warning: This batch expires in ${daysUntilExpiry} days`;
+            expiryDateInput.classList.add('error');
+            return;
+        }
+        
+        // Check if manufacturing date is in the future
+        if (mfgDate > today) {
+            validityWarning.style.display = 'block';
+            warningMessage.textContent = '⚠️ Warning: Manufacturing date is in the future';
+            mfgDateInput.classList.add('error');
+            return;
+        }
+        
+        // Check if expiry is before manufacturing
+        if (expiryDate <= mfgDate) {
+            validityWarning.style.display = 'block';
+            warningMessage.textContent = '⚠️ Error: Expiry date must be after manufacturing date';
+            expiryDateInput.classList.add('error');
+            return;
+        }
+        
+        validityWarning.style.display = 'none';
+        expiryDateInput.classList.remove('error');
+        mfgDateInput.classList.remove('error');
+    }
+    
+    // Update preview
+    function updatePreview() {
+        const batchNo = batchNoInput.value.trim();
+        const medicineOption = medicineSelect.options[medicineSelect.selectedIndex];
+        const medicine = medicineOption.text;
+        const quantity = quantityInput.value;
+        const mrp = mrpInput.value;
+        const mfgDate = mfgDateInput.value;
+        const expiryDate = expiryDateInput.value;
+        
+        // Check if we have enough data to show preview
+        const hasData = batchNo && medicine !== 'Select a medicine' && quantity && mrp && mfgDate && expiryDate;
+        
+        if (hasData) {
+            batchPreview.style.display = 'block';
+            
+            // Format dates for display
+            const formatDisplayDate = (dateStr) => {
+                if (!dateStr) return '-';
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-US', { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric' 
+                });
+            };
+            
+            // Update preview values
+            previewElements.batchNo.textContent = batchNo || '-';
+            previewElements.medicine.textContent = medicine || '-';
+            previewElements.quantity.textContent = quantity ? `${parseInt(quantity).toLocaleString()} units` : '-';
+            previewElements.mrp.textContent = mrp ? `₹${parseFloat(mrp).toFixed(2)}` : '-';
+            previewElements.mfgDate.textContent = formatDisplayDate(mfgDate);
+            previewElements.expiryDate.textContent = formatDisplayDate(expiryDate);
+        } else {
+            batchPreview.style.display = 'none';
+        }
+    }
+    
+    // Form submission
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        let isValid = true;
+        
+        // Validate all required fields
+        inputs.forEach(input => {
+            if (!validateField(input)) {
+                isValid = false;
+            }
+        });
+        
+        // Validate cost price
+        if (!validateCostPrice()) {
+            isValid = false;
+        }
+        
+        if (!isValid) {
+            // Show error message
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'alert alert-danger';
+            errorDiv.innerHTML = `
+                <i class="fas fa-exclamation-circle"></i>
+                Please fix the errors in the form before submitting.
+            `;
+            
+            // Remove existing error if any
+            const existingError = form.querySelector('.alert-danger');
+            if (existingError) existingError.remove();
+            
+            form.insertBefore(errorDiv, form.firstChild);
+            
+            // Scroll to error
+            errorDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Remove error after 5 seconds
+            setTimeout(() => {
+                errorDiv.remove();
+            }, 5000);
+            
+            return;
+        }
+        
+        // Show loading state
+        submitBtn.classList.add('loading');
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Adding Batch...';
+        
+        // Simulate API call delay (remove in production)
+        setTimeout(() => {
+            // Submit the form
+            form.submit();
+        }, 1500);
+    });
+    
+    // Initialize preview on load
+    updatePreview();
+    
+    // Add keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+        // Ctrl+Enter to submit form
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            form.requestSubmit();
+        }
+        
+        // Escape to cancel
+        if (e.key === 'Escape') {
+            if (confirm('Are you sure you want to cancel? Unsaved changes will be lost.')) {
+                window.location.href = "{{ url_for('view_medicines') }}";
+            }
+        }
+    });
+    
+    // Auto-generate batch number suggestion
+    batchNoInput.addEventListener('focus', function() {
+        if (!this.value) {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            this.value = `BATCH${year}${month}${day}-001`;
+            validateField(this);
+            updatePreview();
+        }
+    });
+    
+    // Calculate and set expiry date based on medicine type
+    medicineSelect.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const medicineText = selectedOption.text.toLowerCase();
+        
+        // Set default expiry based on medicine type
+        let defaultExpiryMonths = 12; // Default: 1 year
+        
+        if (medicineText.includes('antibiotic') || medicineText.includes('amoxicillin') || medicineText.includes('azithromycin')) {
+            defaultExpiryMonths = 24; // 2 years for antibiotics
+        } else if (medicineText.includes('eye drop') || medicineText.includes('ointment')) {
+            defaultExpiryMonths = 6; // 6 months for topical
+        } else if (medicineText.includes('inhaler') || medicineText.includes('spray')) {
+            defaultExpiryMonths = 18; // 1.5 years for inhalers
+        }
+        
+        // Calculate expiry date
+        if (mfgDateInput.value) {
+            const mfgDate = new Date(mfgDateInput.value);
+            const expiryDate = new Date(mfgDate);
+            expiryDate.setMonth(expiryDate.getMonth() + defaultExpiryMonths);
+            
+            // Set the expiry date
+            expiryDateInput.value = formatDate(expiryDate);
+            
+            // Trigger validation and preview update
+            validateField(expiryDateInput);
+            checkValidity();
+            updatePreview();
+        }
+    });
+    
+    // Set max date for manufacturing date (today)
+    mfgDateInput.max = formatDate(today);
+    
+    // Set min date for expiry date (tomorrow)
+    const tomorrowDate = new Date(today);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    expiryDateInput.min = formatDate(tomorrowDate);
+});
+</script>
+{% endblock %}

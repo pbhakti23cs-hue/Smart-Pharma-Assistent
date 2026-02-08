@@ -1,0 +1,1517 @@
+{% extends "base.html" %}
+
+{% block title %}Medicines Inventory - Smart Pharma Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    .inventory-container {
+        padding: 20px 0;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #163a63, #102543);
+        color: white;
+        padding: 35px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 15px 35px rgba(21, 101, 192, 0.25);
+        position: relative;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+    }
+    
+    .dashboard-header::after {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 2px, transparent 2px);
+        background-size: 30px 30px;
+        opacity: 0.2;
+    }
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .page-subtitle {
+        opacity: 0.9;
+        font-weight: 300;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+    }
+    
+    .action-bar {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(21, 101, 192, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+    
+    .search-container {
+        position: relative;
+        flex: 1;
+        min-width: 300px;
+        max-width: 500px;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 14px 20px 14px 50px;
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s;
+        background: #fafafa;
+        color: #333;
+    }
+    
+    .search-input:focus {
+        outline: none;
+        border-color: #42A5F5;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+    }
+    
+    .search-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #90A4AE;
+        font-size: 1.2rem;
+        pointer-events: none;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .filter-dropdown {
+        position: relative;
+    }
+    
+    .filter-btn {
+        padding: 12px 25px;
+        background: white;
+        color: #1565C0;
+        border: 2px solid #1565C0;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.3s;
+    }
+    
+    .filter-btn:hover {
+        background: #E3F2FD;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .filter-btn.active {
+        background: #1565C0;
+        color: white;
+    }
+    
+    .filter-content {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        z-index: 100;
+        min-width: 250px;
+        border: 1px solid #E0E0E0;
+        margin-top: 10px;
+    }
+    
+    .filter-content.show {
+        display: block;
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .filter-group {
+        margin-bottom: 20px;
+    }
+    
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+    
+    .filter-label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #2C3E50;
+        font-size: 0.95rem;
+    }
+    
+    .filter-select {
+        width: 100%;
+        padding: 10px 15px;
+        border: 2px solid #E0E0E0;
+        border-radius: 8px;
+        font-size: 14px;
+        background: #fafafa;
+        cursor: pointer;
+        appearance: none;
+    }
+    
+    .filter-select:focus {
+        outline: none;
+        border-color: #42A5F5;
+        background: white;
+    }
+    
+    .filter-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .cards-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    
+    .medicine-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: 2px solid transparent;
+        position: relative;
+    }
+    
+    .medicine-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        border-color: #42A5F5;
+    }
+    
+    .card-header {
+        background: linear-gradient(135deg, var(--card-color), var(--card-color-dark));
+        color: white;
+        padding: 25px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .card-header::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100px;
+        height: 100px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 15px 15px;
+        opacity: 0.3;
+    }
+    
+    .medicine-name {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+        line-height: 1.3;
+    }
+    
+    .medicine-category {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .card-body {
+        padding: 25px;
+    }
+    
+    .medicine-details {
+        display: grid;
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    
+    .detail-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    
+    .detail-icon {
+        color: #1565C0;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    
+    .detail-content {
+        flex: 1;
+    }
+    
+    .detail-label {
+        font-size: 0.85rem;
+        color: #78909C;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+        font-weight: 600;
+    }
+    
+    .detail-value {
+        font-size: 0.95rem;
+        color: #2C3E50;
+        line-height: 1.5;
+        font-weight: 500;
+    }
+    
+    .detail-value.multiline {
+        white-space: pre-line;
+        max-height: 80px;
+        overflow-y: auto;
+        padding-right: 5px;
+    }
+    
+    .detail-value.multiline::-webkit-scrollbar {
+        width: 4px;
+    }
+    
+    .detail-value.multiline::-webkit-scrollbar-thumb {
+        background: #BBDEFB;
+        border-radius: 2px;
+    }
+    
+    .batch-summary {
+        background: #F5F9FF;
+        border-radius: 10px;
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .batch-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .stat-item {
+        padding: 15px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-value {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 5px;
+        color: #1565C0;
+    }
+    
+    .stat-label {
+        font-size: 0.8rem;
+        color: #78909C;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+    }
+    
+    .card-actions {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .action-btn {
+        flex: 1;
+        padding: 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-size: 0.9rem;
+    }
+    
+    .action-btn.primary {
+        background: linear-gradient(135deg, #1565C0, #0D47A1);
+        color: white;
+        box-shadow: 0 4px 0 #0D47A1;
+    }
+    
+    .action-btn.primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 0 #0D47A1, 0 10px 20px rgba(21, 101, 192, 0.2);
+    }
+    
+    .action-btn.secondary {
+        background: white;
+        color: #1565C0;
+        border: 2px solid #1565C0;
+    }
+    
+    .action-btn.secondary:hover {
+        background: #E3F2FD;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .action-btn.danger {
+        background: white;
+        color: #D32F2F;
+        border: 2px solid #D32F2F;
+    }
+    
+    .action-btn.danger:hover {
+        background: #FFEBEE;
+        transform: translateY(-2px);
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        margin: 30px 0;
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        color: #BBDEFB;
+        margin-bottom: 20px;
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .empty-title {
+        font-size: 1.8rem;
+        color: #2C3E50;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    
+    .empty-description {
+        color: #78909C;
+        max-width: 500px;
+        margin: 0 auto 30px;
+        line-height: 1.6;
+        font-size: 1.1rem;
+    }
+    
+    .pagination-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 15px;
+        margin-top: 40px;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+    }
+    
+    .pagination-btn {
+        padding: 10px 20px;
+        background: #E3F2FD;
+        color: #1565C0;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .pagination-btn:hover:not(:disabled) {
+        background: #1565C0;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .pagination-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    
+    .page-info {
+        font-weight: 600;
+        color: #2C3E50;
+        font-size: 1rem;
+    }
+    
+    .page-numbers {
+        display: flex;
+        gap: 5px;
+    }
+    
+    .page-number {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #F5F7FA;
+        color: #546E7A;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .page-number:hover {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+    
+    .page-number.active {
+        background: #1565C0;
+        color: white;
+        box-shadow: 0 4px 0 #0D47A1;
+    }
+    
+    /* Category Colors */
+    .category-analgesic { --card-color: #1565C0; --card-color-dark: #0D47A1; }
+    .category-antibiotic { --card-color: #00897B; --card-color-dark: #00695C; }
+    .category-antihistamine { --card-color: #9C27B0; --card-color-dark: #7B1FA2; }
+    .category-antacid { --card-color: #FF8F00; --card-color-dark: #EF6C00; }
+    .category-nsaid { --card-color: #D32F2F; --card-color-dark: #B71C1C; }
+    .category-anti-diabetic { --card-color: #388E3C; --card-color-dark: #2E7D32; }
+    .category-statin { --card-color: #7B1FA2; --card-color-dark: #6A1B9A; }
+    .category-thyroid { --card-color: #0288D1; --card-color-dark: #0277BD; }
+    .category-bronchodilator { --card-color: #0097A7; --card-color-dark: #00838F; }
+    .category-other { --card-color: #546E7A; --card-color-dark: #455A64; }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .cards-container {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .page-header {
+            padding: 25px 20px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .action-bar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .search-container {
+            min-width: 100%;
+            max-width: 100%;
+        }
+        
+        .action-buttons {
+            justify-content: center;
+        }
+        
+        .cards-container {
+            grid-template-columns: 1fr;
+        }
+        
+        .filter-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 400px;
+            margin: 0;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .card-header {
+            padding: 20px;
+        }
+        
+        .medicine-name {
+            font-size: 1.4rem;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        .batch-stats {
+            grid-template-columns: 1fr;
+        }
+        
+        .card-actions {
+            flex-direction: column;
+        }
+        
+        .pagination-container {
+            flex-direction: column;
+            gap: 10px;
+        }
+    }
+    
+    /* Animation for cards */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .medicine-card {
+        animation: fadeIn 0.5s ease-out;
+        animation-fill-mode: both;
+    }
+    
+    .medicine-card:nth-child(1) { animation-delay: 0.1s; }
+    .medicine-card:nth-child(2) { animation-delay: 0.2s; }
+    .medicine-card:nth-child(3) { animation-delay: 0.3s; }
+    .medicine-card:nth-child(4) { animation-delay: 0.4s; }
+    .medicine-card:nth-child(5) { animation-delay: 0.5s; }
+    .medicine-card:nth-child(6) { animation-delay: 0.6s; }
+    
+    /* Batch status indicators */
+    .batch-status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    
+    .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+    }
+    
+    .status-good { background: #4CAF50; animation: pulse 2s infinite; }
+    .status-warning { background: #FF9800; animation: pulse 1.5s infinite; }
+    .status-danger { background: #F44336; animation: pulse 1s infinite; }
+    
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+    
+    /* Export buttons */
+    .export-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .export-btn {
+        padding: 12px 20px;
+        background: white;
+        color: #1565C0;
+        border: 2px solid #1565C0;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s;
+    }
+    
+    .export-btn:hover {
+        background: #E3F2FD;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="inventory-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-capsules"></i> Medicines Inventory
+        </h1>
+        
+    </div>
+    
+    <!-- Action Bar -->
+    <div class="action-bar">
+        <div class="search-container">
+            <input type="text" 
+                   id="searchInput" 
+                   class="search-input" 
+                   placeholder="Search medicines by name, category, or composition..."
+                   aria-label="Search medicines">
+            <span class="search-icon">
+                <i class="fas fa-search"></i>
+            </span>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{ url_for('add_medicine') }}" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-plus-circle"></i> Add Medicine
+            </a>
+            
+            <a href="{{ url_for('add_batch') }}" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px;">
+                <i class="fas fa-boxes"></i> Add Batch
+            </a>
+            
+            <div class="filter-dropdown">
+                <button class="filter-btn" id="filterToggle">
+                    <i class="fas fa-filter"></i> Filter
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="filter-content" id="filterContent">
+                    <div class="filter-group">
+                        <label class="filter-label">Category</label>
+                        <select class="filter-select" id="categoryFilter">
+                            <option value="">All Categories</option>
+                            <option value="Analgesic">Analgesic</option>
+                            <option value="Antibiotic">Antibiotic</option>
+                            <option value="Antihistamine">Antihistamine</option>
+                            <option value="Antacid">Antacid</option>
+                            <option value="NSAID">NSAID</option>
+                            <option value="Anti-diabetic">Anti-diabetic</option>
+                            <option value="Statin">Statin</option>
+                            <option value="Thyroid hormone">Thyroid hormone</option>
+                            <option value="Bronchodilator">Bronchodilator</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Sort By</label>
+                        <select class="filter-select" id="sortFilter">
+                            <option value="name_asc">Name (A-Z)</option>
+                            <option value="name_desc">Name (Z-A)</option>
+                            <option value="category_asc">Category (A-Z)</option>
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Stock Status</label>
+                        <select class="filter-select" id="stockFilter">
+                            <option value="">All Medicines</option>
+                            <option value="in_stock">In Stock</option>
+                            <option value="low_stock">Low Stock</option>
+                            <option value="out_of_stock">Out of Stock</option>
+                        </select>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="btn btn-primary btn-sm" id="applyFilter">
+                            <i class="fas fa-check"></i> Apply
+                        </button>
+                        <button class="btn btn-secondary btn-sm" id="resetFilter">
+                            <i class="fas fa-redo"></i> Reset
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="export-buttons">
+                <button class="export-btn" id="exportBtn">
+                    <i class="fas fa-file-export"></i> Export
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Medicines Grid -->
+    {% if medicines %}
+    <div class="cards-container" id="medicinesGrid">
+        {% for medicine in medicines %}
+        {% set category_class = 'category-' + medicine.category.lower().replace(' ', '-').replace('/', '-') %}
+        <div class="medicine-card" 
+             data-name="{{ medicine.name.lower() }}" 
+             data-category="{{ medicine.category }}"
+             data-composition="{{ medicine.composition.lower() if medicine.composition else '' }}"
+             data-stock="{% if medicine.total_stock and medicine.total_stock > 10 %}in_stock{% elif medicine.total_stock and medicine.total_stock > 0 %}low_stock{% else %}out_of_stock{% endif %}">
+            <div class="card-header {{ category_class }}">
+                <h3 class="medicine-name">{{ medicine.name }}</h3>
+                <span class="medicine-category">{{ medicine.category }}</span>
+            </div>
+            
+            <div class="card-body">
+                <!-- Medicine Details -->
+                <div class="medicine-details">
+                    <div class="detail-row">
+                        <span class="detail-icon">
+                            <i class="fas fa-flask"></i>
+                        </span>
+                        <div class="detail-content">
+                            <div class="detail-label">Composition</div>
+                            <div class="detail-value">
+                                {{ medicine.composition if medicine.composition else 'Not specified' }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-icon">
+                            <i class="fas fa-stethoscope"></i>
+                        </span>
+                        <div class="detail-content">
+                            <div class="detail-label">Uses</div>
+                            <div class="detail-value multiline" title="{{ medicine.uses if medicine.uses else 'Not specified' }}">
+                                {{ medicine.uses[:100] if medicine.uses else 'Not specified' }}{% if medicine.uses and medicine.uses|length > 100 %}...{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-row">
+                        <span class="detail-icon">
+                            <i class="fas fa-prescription"></i>
+                        </span>
+                        <div class="detail-content">
+                            <div class="detail-label">Dosage</div>
+                            <div class="detail-value multiline" title="{{ medicine.dosage if medicine.dosage else 'Not specified' }}">
+                                {{ medicine.dosage[:80] if medicine.dosage else 'Not specified' }}{% if medicine.dosage and medicine.dosage|length > 80 %}...{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if medicine.side_effects %}
+                    <div class="detail-row">
+                        <span class="detail-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </span>
+                        <div class="detail-content">
+                            <div class="detail-label">Side Effects</div>
+                            <div class="detail-value multiline" title="{{ medicine.side_effects }}">
+                                {{ medicine.side_effects[:80] }}{% if medicine.side_effects|length > 80 %}...{% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Batch Summary -->
+                {% if medicine.total_stock is not none %}
+                <div class="batch-summary">
+                    <div class="batch-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ medicine.total_stock or 0 }}</div>
+                            <div class="stat-label">Total Stock</div>
+                            {% if medicine.total_stock and medicine.total_stock <= 10 %}
+                            <div class="batch-status">
+                                <span class="status-dot status-warning"></span>
+                                <small style="color: #FF9800; font-size: 0.8rem;">Low Stock</small>
+                            </div>
+                            {% elif medicine.total_stock and medicine.total_stock == 0 %}
+                            <div class="batch-status">
+                                <span class="status-dot status-danger"></span>
+                                <small style="color: #F44336; font-size: 0.8rem;">Out of Stock</small>
+                            </div>
+                            {% else %}
+                            <div class="batch-status">
+                                <span class="status-dot status-good"></span>
+                                <small style="color: #4CAF50; font-size: 0.8rem;">In Stock</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="stat-item">
+                            <div class="stat-value">{{ medicine.batch_count or 0 }}</div>
+                            <div class="stat-label">Batches</div>
+                            {% if medicine.expiring_soon and medicine.expiring_soon > 0 %}
+                            <div class="batch-status">
+                                <span class="status-dot status-warning"></span>
+                                <small style="color: #FF9800; font-size: 0.8rem;">{{ medicine.expiring_soon }} expiring soon</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="batch-summary">
+                    <div style="text-align: center; color: #78909C; padding: 20px;">
+                        <i class="fas fa-box-open" style="font-size: 2rem; margin-bottom: 10px; opacity: 0.5;"></i>
+                        <p style="margin: 0;">No batches added yet</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Action Buttons -->
+                <div class="card-actions">
+                    <a href="{{ url_for('add_batch') }}?medicine_id={{ medicine.id }}" 
+                       class="action-btn primary" 
+                       title="Add batch to this medicine">
+                        <i class="fas fa-plus"></i> Add Batch
+                    </a>
+                    
+                    <a href="{{ url_for('edit_medicine', id=medicine.id) }}" 
+                       class="action-btn secondary"
+                        title="Edit medicine details">
+                        <i class="fas fa-edit"></i> Edit
+                    </a>
+                    
+                    <button class="action-btn danger delete-btn" 
+                            data-medicine-id="{{ medicine.id }}" 
+                            data-medicine-name="{{ medicine.name }}"
+                            title="Delete this medicine">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination-container" id="paginationContainer" style="display: none;">
+        <button class="pagination-btn" id="prevPage" disabled>
+            <i class="fas fa-chevron-left"></i> Previous
+        </button>
+        
+        <div class="page-info">
+            Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+        </div>
+        
+        <div class="page-numbers" id="pageNumbers">
+            <!-- Page numbers will be generated by JavaScript -->
+        </div>
+        
+        <button class="pagination-btn" id="nextPage" disabled>
+            Next <i class="fas fa-chevron-right"></i>
+        </button>
+    </div>
+    
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-capsules"></i>
+        </div>
+        <h3 class="empty-title">No Medicines Found</h3>
+        <p class="empty-description">
+            Your medicine inventory is empty. Start by adding your first medicine to manage your pharmacy stock effectively.
+        </p>
+        <a href="{{ url_for('add_medicine') }}" class="btn btn-primary btn-lg">
+            <i class="fas fa-plus-circle"></i> Add Your First Medicine
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+    <div style="background: white; border-radius: 15px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+        <h3 style="color: #D32F2F; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-exclamation-triangle"></i> Confirm Delete
+        </h3>
+        <p id="deleteMessage" style="margin-bottom: 25px; color: #546E7A; line-height: 1.6;">
+            Are you sure you want to delete this medicine? This action cannot be undone.
+        </p>
+        <div style="display: flex; justify-content: flex-end; gap: 15px;">
+            <button id="cancelDelete" class="btn btn-secondary">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+            <button id="confirmDelete" class="btn btn-danger">
+                <i class="fas fa-trash"></i> Delete Medicine
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const searchInput = document.getElementById('searchInput');
+    const filterToggle = document.getElementById('filterToggle');
+    const filterContent = document.getElementById('filterContent');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const sortFilter = document.getElementById('sortFilter');
+    const stockFilter = document.getElementById('stockFilter');
+    const applyFilter = document.getElementById('applyFilter');
+    const resetFilter = document.getElementById('resetFilter');
+    const exportBtn = document.getElementById('exportBtn');
+    const medicinesGrid = document.getElementById('medicinesGrid');
+    const deleteModal = document.getElementById('deleteModal');
+    const deleteMessage = document.getElementById('deleteMessage');
+    const cancelDelete = document.getElementById('cancelDelete');
+    const confirmDelete = document.getElementById('confirmDelete');
+    
+    // Pagination elements
+    const paginationContainer = document.getElementById('paginationContainer');
+    const prevPage = document.getElementById('prevPage');
+    const nextPage = document.getElementById('nextPage');
+    const currentPage = document.getElementById('currentPage');
+    const totalPages = document.getElementById('totalPages');
+    const pageNumbers = document.getElementById('pageNumbers');
+    
+    // State variables
+    let currentFilters = {
+        search: '',
+        category: '',
+        sort: 'name_asc',
+        stock: ''
+    };
+    
+    let currentPageNumber = 1;
+    const itemsPerPage = 6;
+    let filteredMedicines = [];
+    
+    // Initialize
+    initializeFilters();
+    setupEventListeners();
+    filterAndDisplayMedicines();
+    
+    // Initialize filters from localStorage
+    function initializeFilters() {
+        const savedFilters = JSON.parse(localStorage.getItem('medicineFilters')) || {};
+        currentFilters = { ...currentFilters, ...savedFilters };
+        
+        // Apply saved filters to UI
+        searchInput.value = currentFilters.search || '';
+        categoryFilter.value = currentFilters.category || '';
+        sortFilter.value = currentFilters.sort || 'name_asc';
+        stockFilter.value = currentFilters.stock || '';
+    }
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Search input
+        searchInput.addEventListener('input', debounce(function() {
+            currentFilters.search = this.value.toLowerCase();
+            saveFilters();
+            filterAndDisplayMedicines();
+        }, 300));
+        
+        // Filter toggle
+        filterToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            filterContent.classList.toggle('show');
+            filterToggle.classList.toggle('active');
+        });
+        
+        // Close filter when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!filterContent.contains(e.target) && !filterToggle.contains(e.target)) {
+                filterContent.classList.remove('show');
+                filterToggle.classList.remove('active');
+            }
+        });
+        
+        // Apply filter button
+        applyFilter.addEventListener('click', function() {
+            currentFilters.category = categoryFilter.value;
+            currentFilters.sort = sortFilter.value;
+            currentFilters.stock = stockFilter.value;
+            saveFilters();
+            filterAndDisplayMedicines();
+            filterContent.classList.remove('show');
+            filterToggle.classList.remove('active');
+        });
+        
+        // Reset filter button
+        resetFilter.addEventListener('click', function() {
+            searchInput.value = '';
+            categoryFilter.value = '';
+            sortFilter.value = 'name_asc';
+            stockFilter.value = '';
+            
+            currentFilters = {
+                search: '',
+                category: '',
+                sort: 'name_asc',
+                stock: ''
+            };
+            
+            localStorage.removeItem('medicineFilters');
+            filterAndDisplayMedicines();
+        });
+        
+        // Export button
+        exportBtn.addEventListener('click', function() {
+            exportToCSV();
+        });
+        
+        // Pagination buttons
+        prevPage.addEventListener('click', function() {
+            if (currentPageNumber > 1) {
+                currentPageNumber--;
+                displayPage(currentPageNumber);
+            }
+        });
+        
+        nextPage.addEventListener('click', function() {
+            const totalPagesCount = Math.ceil(filteredMedicines.length / itemsPerPage);
+            if (currentPageNumber < totalPagesCount) {
+                currentPageNumber++;
+                displayPage(currentPageNumber);
+            }
+        });
+        
+        // Delete buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const medicineId = this.getAttribute('data-medicine-id');
+                const medicineName = this.getAttribute('data-medicine-name');
+                
+                deleteMessage.innerHTML = `
+                    Are you sure you want to delete <strong>"${medicineName}"</strong>?<br><br>
+                    This action will:
+                    <ul style="margin: 10px 0 10px 20px; color: #666;">
+                        <li>Permanently remove this medicine</li>
+                        <li>Delete all associated batches</li>
+                        <li>Remove from AI recommendation system</li>
+                    </ul>
+                    This action cannot be undone.
+                `;
+                
+                deleteModal.style.display = 'flex';
+                deleteModal.setAttribute('data-medicine-id', medicineId);
+            });
+        });
+        
+        // Cancel delete
+        cancelDelete.addEventListener('click', function() {
+            deleteModal.style.display = 'none';
+        });
+        
+        // Confirm delete
+        confirmDelete.addEventListener('click', function() {
+            const medicineId = deleteModal.getAttribute('data-medicine-id');
+            deleteMedicine(medicineId);
+            deleteModal.style.display = 'none';
+        });
+        
+        // Close modal when clicking outside
+        deleteModal.addEventListener('click', function(e) {
+            if (e.target === deleteModal) {
+                deleteModal.style.display = 'none';
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+F to focus search
+            if (e.ctrlKey && e.key === 'f') {
+                e.preventDefault();
+                searchInput.focus();
+            }
+            
+            // Escape to close modal
+            if (e.key === 'Escape') {
+                if (deleteModal.style.display === 'flex') {
+                    deleteModal.style.display = 'none';
+                }
+                if (filterContent.classList.contains('show')) {
+                    filterContent.classList.remove('show');
+                    filterToggle.classList.remove('active');
+                }
+            }
+        });
+    }
+    
+    // Filter medicines based on current filters
+    function filterAndDisplayMedicines() {
+        const medicineCards = document.querySelectorAll('.medicine-card');
+        filteredMedicines = [];
+        
+        medicineCards.forEach(card => {
+            const name = card.getAttribute('data-name');
+            const category = card.getAttribute('data-category');
+            const composition = card.getAttribute('data-composition');
+            const stock = card.getAttribute('data-stock');
+            let showCard = true;
+            
+            // Apply search filter
+            if (currentFilters.search) {
+                const searchTerm = currentFilters.search;
+                if (!name.includes(searchTerm) && 
+                    !category.toLowerCase().includes(searchTerm) &&
+                    !composition.includes(searchTerm)) {
+                    showCard = false;
+                }
+            }
+            
+            // Apply category filter
+            if (currentFilters.category && category !== currentFilters.category) {
+                showCard = false;
+            }
+            
+            // Apply stock filter
+            if (currentFilters.stock && stock !== currentFilters.stock) {
+                showCard = false;
+            }
+            
+            if (showCard) {
+                filteredMedicines.push({
+                    element: card,
+                    name: card.querySelector('.medicine-name').textContent,
+                    category: category,
+                    stock: stock
+                });
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+        
+        // Sort filtered medicines
+        sortMedicines(filteredMedicines);
+        
+        // Update pagination
+        updatePagination();
+        
+        // Display current page
+        displayPage(1);
+    }
+    
+    // Sort medicines based on current sort filter
+    function sortMedicines(medicines) {
+        const [field, order] = currentFilters.sort.split('_');
+        
+        medicines.sort((a, b) => {
+            let valueA, valueB;
+            
+            if (field === 'name') {
+                valueA = a.name.toLowerCase();
+                valueB = b.name.toLowerCase();
+            } else if (field === 'category') {
+                valueA = a.category.toLowerCase();
+                valueB = b.category.toLowerCase();
+            } else {
+                // Default to name sorting
+                valueA = a.name.toLowerCase();
+                valueB = b.name.toLowerCase();
+            }
+            
+            if (order === 'asc') {
+                return valueA.localeCompare(valueB);
+            } else {
+                return valueB.localeCompare(valueA);
+            }
+        });
+    }
+    
+    // Update pagination controls
+    function updatePagination() {
+        const totalPagesCount = Math.ceil(filteredMedicines.length / itemsPerPage);
+        
+        if (totalPagesCount <= 1) {
+            paginationContainer.style.display = 'none';
+            return;
+        }
+        
+        paginationContainer.style.display = 'flex';
+        totalPages.textContent = totalPagesCount;
+        
+        // Update page numbers
+        pageNumbers.innerHTML = '';
+        const maxPagesToShow = 5;
+        let startPage = Math.max(1, currentPageNumber - Math.floor(maxPagesToShow / 2));
+        let endPage = Math.min(totalPagesCount, startPage + maxPagesToShow - 1);
+        
+        if (endPage - startPage + 1 < maxPagesToShow) {
+            startPage = Math.max(1, endPage - maxPagesToShow + 1);
+        }
+        
+        for (let i = startPage; i <= endPage; i++) {
+            const pageBtn = document.createElement('div');
+            pageBtn.className = 'page-number';
+            if (i === currentPageNumber) {
+                pageBtn.classList.add('active');
+            }
+            pageBtn.textContent = i;
+            pageBtn.addEventListener('click', () => {
+                currentPageNumber = i;
+                displayPage(i);
+            });
+            pageNumbers.appendChild(pageBtn);
+        }
+        
+        // Update button states
+        prevPage.disabled = currentPageNumber === 1;
+        nextPage.disabled = currentPageNumber === totalPagesCount;
+    }
+    
+    // Display a specific page
+    function displayPage(pageNumber) {
+        const startIndex = (pageNumber - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, filteredMedicines.length);
+        
+        // Hide all cards first
+        document.querySelectorAll('.medicine-card').forEach(card => {
+            card.style.display = 'none';
+        });
+        
+        // Show cards for current page
+        for (let i = startIndex; i < endIndex; i++) {
+            if (filteredMedicines[i]) {
+                filteredMedicines[i].element.style.display = 'block';
+                // Add animation delay based on position
+                filteredMedicines[i].element.style.animationDelay = `${(i - startIndex) * 0.1}s`;
+            }
+        }
+        
+        // Update current page display
+        currentPage.textContent = pageNumber;
+        currentPageNumber = pageNumber;
+        
+        // Update pagination buttons
+        updatePagination();
+        
+        // Scroll to top of grid
+        medicinesGrid.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // Save filters to localStorage
+    function saveFilters() {
+        localStorage.setItem('medicineFilters', JSON.stringify(currentFilters));
+    }
+    
+    // Export to CSV
+    function exportToCSV() {
+        let csvContent = "Medicine Name,Category,Composition,Uses,Dosage,Side Effects,Total Stock,Batches\n";
+        
+        filteredMedicines.forEach(medicine => {
+            const card = medicine.element;
+            const name = card.querySelector('.medicine-name').textContent;
+            const category = card.querySelector('.medicine-category').textContent;
+            const composition = card.querySelector('.detail-row:nth-child(1) .detail-value').textContent.trim();
+            const uses = card.querySelector('.detail-row:nth-child(2) .detail-value').textContent.trim();
+            const dosage = card.querySelector('.detail-row:nth-child(3) .detail-value').textContent.trim();
+            const sideEffects = card.querySelector('.detail-row:nth-child(4)') ? 
+                card.querySelector('.detail-row:nth-child(4) .detail-value').textContent.trim() : '';
+            
+            const stats = card.querySelectorAll('.stat-value');
+            const totalStock = stats[0] ? stats[0].textContent : '0';
+            const batches = stats[1] ? stats[1].textContent : '0';
+            
+            // Escape commas and quotes
+            const escapeCSV = (text) => {
+                if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+                    return '"' + text.replace(/"/g, '""') + '"';
+                }
+                return text;
+            };
+            
+            csvContent += `${escapeCSV(name)},${escapeCSV(category)},${escapeCSV(composition)},${escapeCSV(uses)},${escapeCSV(dosage)},${escapeCSV(sideEffects)},${totalStock},${batches}\n`;
+        });
+        
+        // Create download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `medicines_export_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.display = 'none';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Show success message
+        showNotification('Medicines exported successfully as CSV', 'success');
+    }
+    
+    // Delete medicine
+    function deleteMedicine(medicineId) {
+        // In a real application, this would be an AJAX call to your backend
+        // For now, we'll simulate the deletion
+        
+        showNotification('Deleting medicine...', 'info');
+        
+        // Simulate API call
+        setTimeout(() => {
+            // Find and remove the medicine card
+            const medicineCard = document.querySelector(`.delete-btn[data-medicine-id="${medicineId}"]`).closest('.medicine-card');
+            if (medicineCard) {
+                medicineCard.style.animation = 'fadeOut 0.5s ease-out';
+                setTimeout(() => {
+                    medicineCard.remove();
+                    
+                    // Check if we have any medicines left
+                    const remainingCards = document.querySelectorAll('.medicine-card');
+                    if (remainingCards.length === 0) {
+                        // Show empty state
+                        const emptyState = document.querySelector('.empty-state') || createEmptyState();
+                        medicinesGrid.parentNode.insertBefore(emptyState, medicinesGrid.nextSibling);
+                        medicinesGrid.style.display = 'none';
+                        paginationContainer.style.display = 'none';
+                    }
+                    
+                    showNotification('Medicine deleted successfully', 'success');
+                    filterAndDisplayMedicines();
+                }, 500);
+            }
+        }, 1000);
+    }
+    
+    // Show notification
+    function showNotification(message, type) {
+        // Remove existing notifications
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(notification => notification.remove());
+        
+        // Create notification
+        const notification = document.createElement('div');
+        notification.className = `notification alert alert-${type}`;
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+            ${message}
+        `;
+        
+        // Style the notification
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            animation: slideInRight 0.3s ease-out;
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.style.animation = 'slideOutRight 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }
+        }, 5000);
+    }
+    
+    // Create empty state (if needed)
+    function createEmptyState() {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'empty-state';
+        emptyState.innerHTML = `
+            <div class="empty-icon">
+                <i class="fas fa-capsules"></i>
+            </div>
+            <h3 class="empty-title">No Medicines Found</h3>
+            <p class="empty-description">
+                Your search or filters returned no results. Try adjusting your search terms or filters.
+            </p>
+            <button class="btn btn-primary btn-lg" id="resetFiltersBtn">
+                <i class="fas fa-redo"></i> Reset Filters
+            </button>
+        `;
+        
+        emptyState.querySelector('#resetFiltersBtn').addEventListener('click', function() {
+            resetFilter.click();
+        });
+        
+        return emptyState;
+    }
+    
+    // Debounce function for search input
+    function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func.apply(this, args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
+    }
+    
+    // Add CSS for animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeOut {
+            from { opacity: 1; transform: translateY(0); }
+            to { opacity: 0; transform: translateY(20px); }
+        }
+        
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(100%); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes slideOutRight {
+            from { opacity: 1; transform: translateX(0); }
+            to { opacity: 0; transform: translateX(100%); }
+        }
+        
+        .notification {
+            animation: slideInRight 0.3s ease-out !important;
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
+{% endblock %}

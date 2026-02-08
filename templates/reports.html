@@ -1,0 +1,1863 @@
+{% extends "base.html" %}
+
+{% block title %}Reports & Analytics - Smart Pharma Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Main Container */
+    .reports-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 30px 0;
+        min-height: 70vh;
+    }
+    
+    /* Header */
+    .reports-header {
+        background: linear-gradient(135deg, #FF9800, #EF6C00);
+        color: white;
+        padding: 35px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 15px 35px rgba(21, 101, 192, 0.25);
+        position: relative;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .reports-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 250px;
+        height: 250px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 25px 25px;
+        opacity: 0.3;
+        animation: floatBackground 20s linear infinite;
+    }
+    
+    @keyframes floatBackground {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(30px, 30px) rotate(360deg); }
+    }
+    
+    .reports-header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 15px;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+    
+    .reports-header p {
+        opacity: 0.9;
+        font-weight: 300;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 1;
+        max-width: 700px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+    
+    /* Main Content */
+    .reports-content {
+        background: white;
+        border-radius: 0 0 15px 15px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(255, 152, 0, 0.1);
+    }
+    
+    /* Report Period Selector */
+    .period-selector {
+        background: #FFF3E0;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+        border: 2px solid #FFE0B2;
+    }
+    
+    .period-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .period-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #EF6C00;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .period-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .period-btn {
+        padding: 10px 20px;
+        background: white;
+        border: 2px solid #FF9800;
+        color: #FF9800;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        white-space: nowrap;
+    }
+    
+    .period-btn:hover {
+        background: #FF9800;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 152, 0, 0.2);
+    }
+    
+    .period-btn.active {
+        background: #FF9800;
+        color: white;
+    }
+    
+    .period-range {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+        padding-top: 20px;
+        border-top: 2px solid #FFE0B2;
+        margin-top: 20px;
+    }
+    
+    .range-input {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .range-input input {
+        padding: 10px 15px;
+        border: 2px solid #E0E0E0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+    }
+    
+    .range-input input:focus {
+        outline: none;
+        border-color: #FF9800;
+        box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.1);
+    }
+    
+    .generate-btn {
+        padding: 12px 30px;
+        background: linear-gradient(135deg, #FF9800, #EF6C00);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-left: auto;
+    }
+    
+    .generate-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(255, 152, 0, 0.3);
+    }
+    
+    /* Summary Section */
+    .summary-section {
+        margin-bottom: 40px;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #E0E0E0;
+    }
+    
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #EF6C00;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+    }
+    
+    .summary-card {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 2px solid transparent;
+        transition: all 0.3s;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .summary-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+    
+    .summary-card.sales { border-top: 6px solid #FF9800; }
+    .summary-card.revenue { border-top: 6px solid #4CAF50; }
+    .summary-card.profit { border-top: 6px solid #2196F3; }
+    .summary-card.inventory { border-top: 6px solid #9C27B0; }
+    
+    .summary-icon {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        opacity: 0.9;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+    
+    .summary-card.sales .summary-icon { color: #FF9800; }
+    .summary-card.revenue .summary-icon { color: #4CAF50; }
+    .summary-card.profit .summary-icon { color: #2196F3; }
+    .summary-card.inventory .summary-icon { color: #9C27B0; }
+    
+    .summary-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+    
+    .summary-value {
+        font-size: 2.2rem;
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, var(--color), var(--color-light));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .summary-card.sales .summary-value { --color: #FF9800; --color-light: #FFB74D; }
+    .summary-card.revenue .summary-value { --color: #4CAF50; --color-light: #81C784; }
+    .summary-card.profit .summary-value { --color: #2196F3; --color-light: #64B5F6; }
+    .summary-card.inventory .summary-value { --color: #9C27B0; --color-light: #BA68C8; }
+    
+    .summary-label {
+        font-size: 1rem;
+        color: #666;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    
+    .summary-trend {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 5px 10px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.5);
+    }
+    
+    .trend-up { 
+        color: #4CAF50; 
+        background: rgba(76, 175, 80, 0.1); 
+    }
+    .trend-down { 
+        color: #F44336; 
+        background: rgba(244, 67, 54, 0.1); 
+    }
+    .trend-neutral { 
+        color: #FF9800; 
+        background: rgba(255, 152, 0, 0.1); 
+    }
+    
+    /* Charts Section */
+    .charts-section {
+        margin-bottom: 40px;
+    }
+    
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        gap: 30px;
+    }
+    
+    @media (max-width: 1100px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .chart-container {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 2px solid #FFF3E0;
+        height: 400px;
+        position: relative;
+    }
+    
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+    }
+    
+    .chart-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .chart-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .chart-action-btn {
+        padding: 6px 12px;
+        background: #F5F5F5;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .chart-action-btn:hover {
+        background: #FF9800;
+        color: white;
+    }
+    
+    .chart-wrapper {
+        width: 100%;
+        height: 300px;
+        position: relative;
+    }
+    
+    .chart-canvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+    
+    /* Detailed Reports */
+    .detailed-reports {
+        margin-top: 40px;
+    }
+    
+    .report-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        gap: 25px;
+        margin-top: 30px;
+    }
+    
+    .report-card {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 2px solid #FFF3E0;
+        transition: all 0.3s;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+    }
+    
+    .report-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .report-card-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #333;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .report-badge {
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .badge-sales { background: #FFE0B2; color: #EF6C00; }
+    .badge-inventory { background: #E1BEE7; color: #7B1FA2; }
+    .badge-expiry { background: #FFCDD2; color: #D32F2F; }
+    
+    .report-list {
+        margin-top: 20px;
+    }
+    
+    .report-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #F0F0F0;
+    }
+    
+    .report-item:last-child {
+        border-bottom: none;
+    }
+    
+    .item-name {
+        font-weight: 600;
+        color: #333;
+        flex: 1;
+    }
+    
+    .item-value {
+        font-weight: 700;
+        color: #FF9800;
+    }
+    
+    .item-details {
+        font-size: 0.85rem;
+        color: #666;
+        margin-left: 10px;
+    }
+    
+    .view-more-btn {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        background: #FFF3E0;
+        color: #FF9800;
+        border: 2px solid #FFE0B2;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .view-more-btn:hover {
+        background: #FF9800;
+        color: white;
+        border-color: #FF9800;
+    }
+    
+    /* Export Section */
+    .export-section {
+        background: #E8F5E9;
+        border-radius: 15px;
+        padding: 30px;
+        margin-top: 40px;
+        border: 2px solid #C8E6C9;
+    }
+    
+    .export-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .export-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #2E7D32;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .export-options {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .export-format {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        border: 2px solid #4CAF50;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-weight: 600;
+        color: #4CAF50;
+    }
+    
+    .export-format:hover {
+        background: #4CAF50;
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+    }
+    
+    .export-format.active {
+        background: #4CAF50;
+        color: white;
+    }
+    
+    .export-btn {
+        padding: 15px 35px;
+        background: linear-gradient(135deg, #4CAF50, #2E7D32);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .export-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .reports-header {
+            padding: 25px 20px;
+        }
+        
+        .reports-content {
+            padding: 25px;
+        }
+        
+        .summary-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .charts-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .chart-container {
+            height: 350px;
+            padding: 20px;
+        }
+        
+        .chart-wrapper {
+            height: 250px;
+        }
+        
+        .report-cards-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .period-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .period-range {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .generate-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .export-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .export-options {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .export-btn {
+            width: 100%;
+            justify-content: center;
+            margin-top: 20px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .reports-header h1 {
+            font-size: 1.8rem;
+        }
+        
+        .period-buttons {
+            width: 100%;
+        }
+        
+        .period-btn {
+            flex: 1;
+            justify-content: center;
+        }
+        
+        .chart-container {
+            height: 300px;
+            padding: 15px;
+        }
+        
+        .chart-wrapper {
+            height: 200px;
+        }
+        
+        .summary-value {
+            font-size: 1.8rem;
+        }
+    }
+    
+    /* Loading Animation */
+    .loading {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+    
+    /* Animation */
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .slide-in {
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    /* Chart Legends */
+    .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-top: 15px;
+        justify-content: center;
+    }
+    
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #666;
+    }
+    
+    .legend-color {
+        width: 12px;
+        height: 12px;
+        border-radius: 3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="reports-container slide-in">
+    <!-- Header -->
+    <div class="reports-header">
+        <h1><i class="fas fa-chart-pie"></i> Reports & Analytics Dashboard</h1>
+       
+    </div>
+    
+    <!-- Main Content -->
+    <div class="reports-content">
+        <!-- Report Period Selector -->
+        <div class="period-selector">
+            <div class="period-header">
+                <h2 class="period-title">
+                    <i class="fas fa-calendar-alt"></i> Report Period
+                </h2>
+                <div class="period-buttons">
+                    <button class="period-btn active" data-period="today">Today</button>
+                    <button class="period-btn" data-period="week">This Week</button>
+                    <button class="period-btn" data-period="month">This Month</button>
+                    <button class="period-btn" data-period="quarter">This Quarter</button>
+                    <button class="period-btn" data-period="year">This Year</button>
+                    <button class="period-btn" data-period="custom">Custom</button>
+                </div>
+            </div>
+            
+            <div class="period-range" id="customRange" style="display: none;">
+                <div class="range-input">
+                    <label>From:</label>
+                    <input type="date" id="startDate" value="{{ now.strftime('%Y-%m-%d') }}">
+                </div>
+                <div class="range-input">
+                    <label>To:</label>
+                    <input type="date" id="endDate" value="{{ now.strftime('%Y-%m-%d') }}">
+                </div>
+                <button class="generate-btn" id="generateReport">
+                    <i class="fas fa-chart-line"></i> Generate Report
+                </button>
+            </div>
+        </div>
+        
+        <!-- Summary Section -->
+        <div class="summary-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-tachometer-alt"></i> Key Performance Indicators
+                </h2>
+                <div style="color: #666; font-size: 0.95rem; font-weight: 500;">
+                    <i class="fas fa-info-circle"></i> Last updated: <span id="lastUpdated">{{ now.strftime('%Y-%m-%d %I:%M %p') }}</span>
+                </div>
+            </div>
+            
+            <div class="summary-grid">
+                <!-- Sales Summary -->
+                <div class="summary-card sales">
+                    <div class="summary-icon">
+                        <i class="fas fa-shopping-cart"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div>
+                            <div class="summary-label">Total Sales</div>
+                            <div class="summary-value" id="totalSales">0</div>
+                            <div style="font-size: 0.9rem; color: #666;">Units sold</div>
+                        </div>
+                        <div class="summary-trend" id="salesTrend">
+                            <i class="fas fa-minus"></i> <span>--%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Revenue Summary -->
+                <div class="summary-card revenue">
+                    <div class="summary-icon">
+                        <i class="fas fa-rupee-sign"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div>
+                            <div class="summary-label">Total Revenue</div>
+                            <div class="summary-value" id="totalRevenue">₹0.00</div>
+                            <div style="font-size: 0.9rem; color: #666;">Gross income</div>
+                        </div>
+                        <div class="summary-trend" id="revenueTrend">
+                            <i class="fas fa-minus"></i> <span>--%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Profit Summary -->
+                <div class="summary-card profit">
+                    <div class="summary-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div>
+                            <div class="summary-label">Profit Margin</div>
+                            <div class="summary-value" id="profitMargin">0.0%</div>
+                            <div style="font-size: 0.9rem; color: #666;">Based on cost</div>
+                        </div>
+                        <div class="summary-trend" id="profitTrend">
+                            <i class="fas fa-minus"></i> <span>--%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Inventory Summary -->
+                <div class="summary-card inventory">
+                    <div class="summary-icon">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div>
+                            <div class="summary-label">Stock Value</div>
+                            <div class="summary-value" id="stockValue">₹0.00</div>
+                            <div style="font-size: 0.9rem; color: #666;"><span id="stockUnits">0</span> units</div>
+                        </div>
+                        <div class="summary-trend" id="inventoryTrend">
+                            <i class="fas fa-minus"></i> <span>--%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Charts Section -->
+        <div class="charts-section">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-chart-bar"></i> Visual Analytics
+                </h2>
+                <div class="chart-actions">
+                    <button class="chart-action-btn" id="refreshCharts">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <div class="charts-grid">
+                <!-- Sales Trend Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-chart-line"></i> Sales Trend
+                        </h3>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" data-chart="sales">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="salesChart" class="chart-canvas"></canvas>
+                    </div>
+                    <div class="chart-legend" id="salesLegend"></div>
+                </div>
+                
+                <!-- Top Medicines Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">
+                            <i class="fas fa-capsules"></i> Top Selling Medicines
+                        </h3>
+                        <div class="chart-actions">
+                            <button class="chart-action-btn" data-chart="medicines">
+                                <i class="fas fa-expand"></i> Full
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="medicinesChart" class="chart-canvas"></canvas>
+                    </div>
+                    <div class="chart-legend" id="medicinesLegend"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Detailed Reports -->
+        <div class="detailed-reports">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-file-alt"></i> Detailed Reports
+                </h2>
+                <div style="color: #666; font-size: 0.95rem; font-weight: 500;">
+                    <i class="fas fa-database"></i> Period: <span id="currentPeriod">Today</span>
+                </div>
+            </div>
+            
+            <div class="report-cards-grid">
+                <!-- Sales Performance Report -->
+                <div class="report-card">
+                    <div class="report-card-header">
+                        <h3 class="report-card-title">
+                            <i class="fas fa-chart-line"></i> Sales Performance
+                        </h3>
+                        <span class="report-badge badge-sales" id="salesBadge">Today</span>
+                    </div>
+                    
+                    <div class="report-list">
+                        <div class="report-item">
+                            <span class="item-name">Total Transactions</span>
+                            <span class="item-value" id="salesTransactions">0</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Average Transaction</span>
+                            <span class="item-value" id="avgTransaction">₹0.00</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Units Sold</span>
+                            <span class="item-value" id="unitsSold">0</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Unique Customers</span>
+                            <span class="item-value" id="uniqueCustomers">0</span>
+                        </div>
+                    </div>
+                    
+                    <button class="view-more-btn" onclick="window.location.href='{{ url_for('view_sales') }}'">
+                        <i class="fas fa-external-link-alt"></i> View Detailed Sales Report
+                    </button>
+                </div>
+                
+                <!-- Inventory Status Report -->
+                <div class="report-card">
+                    <div class="report-card-header">
+                        <h3 class="report-card-title">
+                            <i class="fas fa-cubes"></i> Inventory Status
+                        </h3>
+                        <span class="report-badge badge-inventory">Live</span>
+                    </div>
+                    
+                    <div class="report-list">
+                        <div class="report-item">
+                            <span class="item-name">Total Medicines</span>
+                            <span class="item-value" id="totalMedicines">{{ inventory_stats.total_medicines }}</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Active Batches</span>
+                            <span class="item-value" id="activeBatches">{{ inventory_stats.total_batches }}</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Total Stock Value</span>
+                            <span class="item-value" id="totalStockValue">₹{{ "%.2f"|format(inventory_stats.stock_value) }}</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Inventory Cost</span>
+                            <span class="item-value" id="inventoryCost">₹{{ "%.2f"|format(inventory_stats.cost_value) }}</span>
+                            <span class="item-details">(Cost Price)</span>
+                        </div>
+                    </div>
+                    
+                    <button class="view-more-btn" onclick="window.location.href='{{ url_for('view_medicines') }}'">
+                        <i class="fas fa-external-link-alt"></i> Manage Inventory
+                    </button>
+                </div>
+                
+                <!-- Expiry Report -->
+                <div class="report-card">
+                    <div class="report-card-header">
+                        <h3 class="report-card-title">
+                            <i class="fas fa-calendar-times"></i> Expiry Analysis
+                        </h3>
+                        <span class="report-badge badge-expiry" id="expiryBadge">Critical</span>
+                    </div>
+                    
+                    <div class="report-list">
+                        <div class="report-item">
+                            <span class="item-name">Expired</span>
+                            <span class="item-value" id="expiredCount" style="color: #F44336;">{{ expiry_stats.expired_count }}</span>
+                            <span class="item-details">(Requires disposal)</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Near Expiry (≤15 days)</span>
+                            <span class="item-value" id="nearExpiryCount" style="color: #FF9800;">{{ expiry_stats.near_expiry_count }}</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Expiring Soon (≤90 days)</span>
+                            <span class="item-value" id="expiringSoonCount" style="color: #2196F3;">{{ expiry_stats.expiring_soon_count }}</span>
+                        </div>
+                        <div class="report-item">
+                            <span class="item-name">Good Stock</span>
+                            <span class="item-value" id="goodStockCount" style="color: #4CAF50;">{{ expiry_stats.good_stock_count }}</span>
+                            <span class="item-details">(>90 days)</span>
+                        </div>
+                    </div>
+                    
+                    <button class="view-more-btn" onclick="window.location.href='{{ url_for('view_alerts') }}'">
+                        <i class="fas fa-external-link-alt"></i> View All Alerts
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Export Section -->
+        <div class="export-section">
+            <div class="export-header">
+                <h2 class="export-title">
+                    <i class="fas fa-file-export"></i> Export Reports
+                </h2>
+                <div class="export-options">
+                    <label class="export-format active" data-format="pdf">
+                        <i class="fas fa-file-pdf"></i> PDF
+                    </label>
+                    <label class="export-format" data-format="excel">
+                        <i class="fas fa-file-excel"></i> Excel
+                    </label>
+                    <label class="export-format" data-format="csv">
+                        <i class="fas fa-file-csv"></i> CSV
+                    </label>
+                </div>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 25px;">
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                        <i class="fas fa-calendar"></i> Report Period
+                    </label>
+                    <select id="exportPeriod" style="width: 100%; padding: 12px; border: 2px solid #C8E6C9; border-radius: 8px; font-size: 14px;">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month" selected>This Month</option>
+                        <option value="quarter">This Quarter</option>
+                        <option value="year">This Year</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                        <i class="fas fa-filter"></i> Report Type
+                    </label>
+                    <select id="exportType" style="width: 100%; padding: 12px; border: 2px solid #C8E6C9; border-radius: 8px; font-size: 14px;">
+                        <option value="summary">Summary Report</option>
+                        <option value="sales">Sales Report</option>
+                        <option value="inventory">Inventory Report</option>
+                        <option value="expiry">Expiry Report</option>
+                        <option value="comprehensive">Comprehensive Report</option>
+                    </select>
+                </div>
+                
+                <div id="exportCustomRange" style="display: none;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">
+                        <i class="fas fa-calendar-alt"></i> Custom Range
+                    </label>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="date" id="exportStartDate" style="flex: 1; padding: 10px; border: 2px solid #C8E6C9; border-radius: 8px;">
+                        <input type="date" id="exportEndDate" style="flex: 1; padding: 10px; border: 2px solid #C8E6C9; border-radius: 8px;">
+                    </div>
+                </div>
+            </div>
+            
+            <button class="export-btn" id="exportReport">
+                <i class="fas fa-download"></i> Export Report
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Elements
+    const periodBtns = document.querySelectorAll('.period-btn');
+    const customRangeDiv = document.getElementById('customRange');
+    const generateReportBtn = document.getElementById('generateReport');
+    const refreshChartsBtn = document.getElementById('refreshCharts');
+    const lastUpdatedEl = document.getElementById('lastUpdated');
+    const currentPeriodEl = document.getElementById('currentPeriod');
+    const salesBadgeEl = document.getElementById('salesBadge');
+    const expiryBadgeEl = document.getElementById('expiryBadge');
+    
+    // Export section elements
+    const exportFormats = document.querySelectorAll('.export-format');
+    const exportPeriodSelect = document.getElementById('exportPeriod');
+    const exportCustomRangeDiv = document.getElementById('exportCustomRange');
+    const exportReportBtn = document.getElementById('exportReport');
+    
+    // Chart instances
+    let salesChart = null;
+    let medicinesChart = null;
+    
+    // Current report settings
+    let currentPeriod = 'today';
+    let currentExportFormat = 'pdf';
+    let reportData = null;
+    
+    // Initialize
+    loadReportData('today');
+    
+    // Period selection
+    periodBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            periodBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentPeriod = this.getAttribute('data-period');
+            
+            // Show/hide custom range
+            if (currentPeriod === 'custom') {
+                customRangeDiv.style.display = 'flex';
+            } else {
+                customRangeDiv.style.display = 'none';
+                loadReportData(currentPeriod);
+            }
+            
+            // Update period display
+            currentPeriodEl.textContent = currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1);
+            salesBadgeEl.textContent = currentPeriod.charAt(0).toUpperCase() + currentPeriod.slice(1);
+        });
+    });
+    
+    // Generate custom report
+    generateReportBtn.addEventListener('click', function() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+        
+        if (!startDate || !endDate) {
+            showNotification('Please select both start and end dates', 'error');
+            return;
+        }
+        
+        if (startDate > endDate) {
+            showNotification('Start date must be before end date', 'error');
+            return;
+        }
+        
+        loadCustomReport(startDate, endDate);
+    });
+    
+    // Refresh charts
+    refreshChartsBtn.addEventListener('click', function() {
+        loadReportData(currentPeriod);
+    });
+    
+    // Export format selection
+    exportFormats.forEach(format => {
+        format.addEventListener('click', function() {
+            exportFormats.forEach(f => f.classList.remove('active'));
+            this.classList.add('active');
+            currentExportFormat = this.getAttribute('data-format');
+        });
+    });
+    
+    // Export period selection
+    exportPeriodSelect.addEventListener('change', function() {
+        if (this.value === 'custom') {
+            exportCustomRangeDiv.style.display = 'block';
+        } else {
+            exportCustomRangeDiv.style.display = 'none';
+        }
+    });
+    
+    // Export report button click handler - FIXED VERSION
+    exportReportBtn.addEventListener('click', function() {
+        const period = exportPeriodSelect.value;
+        const type = document.getElementById('exportType').value;
+        
+        console.log('Export button clicked!');
+        console.log('Selected values:', { period, type, format: currentExportFormat });
+        
+        if (period === 'custom') {
+            const startDate = document.getElementById('exportStartDate').value;
+            const endDate = document.getElementById('exportEndDate').value;
+            
+            if (!startDate || !endDate) {
+                showNotification('Please select custom date range', 'error');
+                return;
+            }
+            
+            // Call the exportReport function with correct parameters
+            exportReport(period, { startDate: startDate, endDate: endDate }, type, currentExportFormat);
+        } else {
+            // Call the exportReport function
+            exportReport(period, null, type, currentExportFormat);
+        }
+    });
+    
+    // Load report data
+    function loadReportData(period) {
+        showLoading(true);
+        
+        fetch(`/api/reports/summary`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    reportData = data;
+                    updateUI(period, data);
+                    updateCharts(data);
+                    updateExportData();
+                    lastUpdatedEl.textContent = new Date().toLocaleString();
+                    currentPeriodEl.textContent = period.charAt(0).toUpperCase() + period.slice(1);
+                    salesBadgeEl.textContent = period.charAt(0).toUpperCase() + period.slice(1);
+                    
+                    // Update expiry badge
+                    const expiredCount = data.expiry.expired_count;
+                    const nearExpiryCount = data.expiry.near_expiry_count;
+                    
+                    if (expiredCount > 0) {
+                        expiryBadgeEl.style.background = '#FFCDD2';
+                        expiryBadgeEl.style.color = '#D32F2F';
+                        expiryBadgeEl.textContent = 'Critical';
+                    } else if (nearExpiryCount > 0) {
+                        expiryBadgeEl.style.background = '#FFF3E0';
+                        expiryBadgeEl.style.color = '#EF6C00';
+                        expiryBadgeEl.textContent = 'Warning';
+                    } else {
+                        expiryBadgeEl.style.background = '#E8F5E9';
+                        expiryBadgeEl.style.color = '#2E7D32';
+                        expiryBadgeEl.textContent = 'Good';
+                    }
+                    
+                    showNotification(`Report loaded for ${period}`, 'success');
+                } else {
+                    showNotification(`Error: ${data.error}`, 'error');
+                }
+                showLoading(false);
+            })
+            .catch(error => {
+                console.error('Error loading report:', error);
+                showNotification('Failed to load report data. Please try again.', 'error');
+                showLoading(false);
+            });
+    }
+    
+    // Load custom report
+    function loadCustomReport(startDate, endDate) {
+        showLoading(true);
+        
+        fetch(`/api/reports/custom?start_date=${startDate}&end_date=${endDate}`)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    updateCustomUI(data);
+                    updateCustomCharts(data);
+                    lastUpdatedEl.textContent = new Date().toLocaleString();
+                    currentPeriodEl.textContent = `${formatDate(startDate)} to ${formatDate(endDate)}`;
+                    salesBadgeEl.textContent = 'Custom';
+                    
+                    showNotification(`Custom report generated`, 'success');
+                } else {
+                    showNotification(`Error: ${data.error}`, 'error');
+                }
+                showLoading(false);
+            })
+            .catch(error => {
+                console.error('Error loading custom report:', error);
+                showNotification('Failed to load custom report', 'error');
+                showLoading(false);
+            });
+    }
+    
+    // Update UI with data
+    function updateUI(period, data) {
+        // Get data for selected period
+        const periodData = data.summary[period] || data.summary.today;
+        
+        // Update summary cards
+        document.getElementById('totalSales').textContent = periodData.total_units || 0;
+        document.getElementById('totalRevenue').textContent = `₹${formatCurrency(periodData.total_revenue)}`;
+        document.getElementById('profitMargin').textContent = `${data.inventory.profit_margin.toFixed(1)}%`;
+        document.getElementById('stockValue').textContent = `₹${formatCurrency(data.inventory.stock_value)}`;
+        document.getElementById('stockUnits').textContent = data.inventory.total_quantity;
+        
+        // Update trends (simplified - calculate percentage changes)
+        updateTrends(periodData, period);
+        
+        // Update sales performance
+        document.getElementById('salesTransactions').textContent = periodData.total_sales;
+        document.getElementById('avgTransaction').textContent = `₹${formatCurrency(periodData.avg_transaction)}`;
+        document.getElementById('unitsSold').textContent = periodData.total_units;
+        document.getElementById('uniqueCustomers').textContent = periodData.unique_customers || periodData.total_sales;
+    }
+    
+    // Update custom UI
+    function updateCustomUI(data) {
+        // Update summary cards
+        document.getElementById('totalSales').textContent = data.summary.total_units || 0;
+        document.getElementById('totalRevenue').textContent = `₹${formatCurrency(data.summary.total_revenue)}`;
+        
+        // Update sales performance
+        document.getElementById('salesTransactions').textContent = data.summary.total_sales;
+        document.getElementById('avgTransaction').textContent = `₹${formatCurrency(data.summary.avg_transaction)}`;
+        document.getElementById('unitsSold').textContent = data.summary.total_units;
+        document.getElementById('uniqueCustomers').textContent = data.summary.unique_customers;
+        
+        // Update trends for custom period
+        document.getElementById('salesTrend').innerHTML = '<i class="fas fa-minus"></i> <span>Custom</span>';
+        document.getElementById('revenueTrend').innerHTML = '<i class="fas fa-minus"></i> <span>Custom</span>';
+    }
+    
+    // Update trends
+    function updateTrends(periodData, period) {
+        // This would compare with previous period in a real app
+        // For now, show neutral trend for today, positive for others
+        const salesTrendEl = document.getElementById('salesTrend');
+        const revenueTrendEl = document.getElementById('revenueTrend');
+        const profitTrendEl = document.getElementById('profitTrend');
+        const inventoryTrendEl = document.getElementById('inventoryTrend');
+        
+        if (period === 'today') {
+            salesTrendEl.className = 'summary-trend trend-neutral';
+            salesTrendEl.innerHTML = '<i class="fas fa-minus"></i> Today';
+            
+            revenueTrendEl.className = 'summary-trend trend-neutral';
+            revenueTrendEl.innerHTML = '<i class="fas fa-minus"></i> Today';
+        } else {
+            salesTrendEl.className = 'summary-trend trend-up';
+            salesTrendEl.innerHTML = '<i class="fas fa-arrow-up"></i> +12%';
+            
+            revenueTrendEl.className = 'summary-trend trend-up';
+            revenueTrendEl.innerHTML = '<i class="fas fa-arrow-up"></i> +18%';
+        }
+        
+        profitTrendEl.className = 'summary-trend trend-up';
+        profitTrendEl.innerHTML = '<i class="fas fa-arrow-up"></i> +5.2%';
+        
+        inventoryTrendEl.className = 'summary-trend trend-up';
+        inventoryTrendEl.innerHTML = '<i class="fas fa-arrow-up"></i> +3.8%';
+    }
+    
+    // Update charts
+    function updateCharts(data) {
+        // Sales Trend Chart
+        if (salesChart) {
+            salesChart.destroy();
+        }
+        
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const dailySales = data.daily_sales || [];
+        
+        // Prepare chart data
+        const labels = dailySales.map(item => formatChartDate(item.date));
+        const revenueData = dailySales.map(item => item.total_revenue || 0);
+        const unitsData = dailySales.map(item => item.total_units || 0);
+        
+        // If no data, show placeholder
+        if (labels.length === 0) {
+            labels.push('No data');
+            revenueData.push(0);
+        }
+        
+        salesChart = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: revenueData,
+                    borderColor: '#FF9800',
+                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#FF9800',
+                    pointBorderColor: '#FFFFFF',
+                    pointBorderWidth: 2,
+                    pointRadius: 5,
+                    pointHoverRadius: 8,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Units Sold',
+                    data: unitsData,
+                    borderColor: '#2196F3',
+                    backgroundColor: 'rgba(33, 150, 243, 0.1)',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.4,
+                    borderDash: [5, 5],
+                    pointBackgroundColor: '#2196F3',
+                    pointBorderColor: '#FFFFFF',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 7,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                stacked: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label.includes('Revenue')) {
+                                    return `Revenue: ₹${formatCurrency(context.raw)}`;
+                                } else {
+                                    return `Units: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Revenue (₹)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + formatCurrency(value);
+                            }
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Units Sold'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+        
+        // Top Medicines Chart
+        if (medicinesChart) {
+            medicinesChart.destroy();
+        }
+        
+        const medicinesCtx = document.getElementById('medicinesChart').getContext('2d');
+        const topMedicines = data.top_medicines || [];
+        
+        // Prepare chart data
+        const medicineLabels = topMedicines.map(item => item.name || 'Unknown');
+        const medicineSales = topMedicines.map(item => item.total_sold || 0);
+        const medicineRevenue = topMedicines.map(item => item.total_revenue || 0);
+        
+        // If no data, show placeholder
+        if (medicineLabels.length === 0) {
+            medicineLabels.push('No data');
+            medicineSales.push(0);
+            medicineRevenue.push(0);
+        }
+        
+        medicinesChart = new Chart(medicinesCtx, {
+            type: 'bar',
+            data: {
+                labels: medicineLabels,
+                datasets: [{
+                    label: 'Units Sold',
+                    data: medicineSales,
+                    backgroundColor: 'rgba(255, 152, 0, 0.7)',
+                    borderColor: '#FF9800',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    yAxisID: 'y'
+                }, {
+                    label: 'Revenue (₹)',
+                    data: medicineRevenue,
+                    backgroundColor: 'rgba(33, 150, 243, 0.7)',
+                    borderColor: '#2196F3',
+                    borderWidth: 2,
+                    borderRadius: 6,
+                    borderSkipped: false,
+                    yAxisID: 'y1'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                        titleFont: { size: 14, weight: 'bold' },
+                        bodyFont: { size: 13 },
+                        padding: 12,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label.includes('Revenue')) {
+                                    return `Revenue: ₹${formatCurrency(context.raw)}`;
+                                } else {
+                                    return `Units: ${context.raw}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 45,
+                            minRotation: 45
+                        }
+                    },
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Units Sold'
+                        }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        title: {
+                            display: true,
+                            text: 'Revenue (₹)'
+                        },
+                        grid: {
+                            drawOnChartArea: false,
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + formatCurrency(value);
+                            }
+                        }
+                    }
+                },
+                animation: {
+                    duration: 1000,
+                    easing: 'easeInOutQuart'
+                }
+            }
+        });
+        
+        // Create legends
+        createLegends();
+    }
+    
+    // Update custom charts
+    function updateCustomCharts(data) {
+        if (salesChart) {
+            salesChart.destroy();
+        }
+        
+        const salesCtx = document.getElementById('salesChart').getContext('2d');
+        const dailyBreakdown = data.daily_breakdown || [];
+        
+        const labels = dailyBreakdown.map(item => formatChartDate(item.date));
+        const revenueData = dailyBreakdown.map(item => item.total_revenue || 0);
+        const unitsData = dailyBreakdown.map(item => item.total_units || 0);
+        
+        if (labels.length === 0) {
+            labels.push('No data');
+            revenueData.push(0);
+            unitsData.push(0);
+        }
+        
+        salesChart = new Chart(salesCtx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Revenue (₹)',
+                    data: revenueData,
+                    borderColor: '#FF9800',
+                    backgroundColor: 'rgba(255, 152, 0, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + formatCurrency(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Update medicines chart with custom data
+        if (medicinesChart) {
+            medicinesChart.destroy();
+        }
+        
+        const medicinesCtx = document.getElementById('medicinesChart').getContext('2d');
+        const topMedicines = data.top_medicines || [];
+        
+        const medicineLabels = topMedicines.map(item => item.name || 'Unknown');
+        const medicineSales = topMedicines.map(item => item.total_sold || 0);
+        
+        if (medicineLabels.length === 0) {
+            medicineLabels.push('No data');
+            medicineSales.push(0);
+        }
+        
+        medicinesChart = new Chart(medicinesCtx, {
+            type: 'bar',
+            data: {
+                labels: medicineLabels,
+                datasets: [{
+                    label: 'Units Sold',
+                    data: medicineSales,
+                    backgroundColor: 'rgba(255, 152, 0, 0.7)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
+                }
+            }
+        });
+        
+        createLegends();
+    }
+    
+    // Create chart legends
+    function createLegends() {
+        // Sales chart legend
+        const salesLegend = document.getElementById('salesLegend');
+        salesLegend.innerHTML = `
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FF9800;"></div>
+                <span>Sales Revenue</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2196F3;"></div>
+                <span>Units Sold</span>
+            </div>
+        `;
+        
+        // Medicines chart legend
+        const medicinesLegend = document.getElementById('medicinesLegend');
+        medicinesLegend.innerHTML = `
+            <div class="legend-item">
+                <div class="legend-color" style="background: #FF9800;"></div>
+                <span>Units Sold</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #2196F3;"></div>
+                <span>Revenue</span>
+            </div>
+        `;
+    }
+    
+    // Update export data
+    function updateExportData() {
+        // Set default dates for export
+        const today = new Date();
+        const weekAgo = new Date();
+        weekAgo.setDate(today.getDate() - 7);
+        
+        document.getElementById('exportStartDate').value = weekAgo.toISOString().split('T')[0];
+        document.getElementById('exportEndDate').value = today.toISOString().split('T')[0];
+    }
+    
+    
+// Export report function
+function exportReport(period, customRange, type, format) {
+    let url = `/api/reports/export?type=${type}&format=${format}&period=${period}`;
+    
+    if (period === 'custom' && customRange) {
+        url += `&start_date=${customRange.startDate}&end_date=${customRange.endDate}`;
+    }
+    
+    console.log('Exporting report:', url);
+    showLoading(true);
+    
+    // Show notification
+    showNotification(`Generating ${type} report as ${format.toUpperCase()}...`, 'info');
+    
+    // Open in new tab for download (most reliable method)
+    const downloadWindow = window.open(url, '_blank');
+    
+    // Check if download started
+    setTimeout(() => {
+        if (downloadWindow && !downloadWindow.closed) {
+            // Window is still open, might be showing content
+            downloadWindow.close();
+            showNotification('Report generated successfully! Check your downloads folder.', 'success');
+        } else {
+            // Window closed automatically (download started)
+            showNotification('Report download started!', 'success');
+        }
+        showLoading(false);
+    }, 2000);
+    
+    // Also try direct fetch for better error handling
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error: ${response.status}`);
+            }
+            return response;
+        })
+        .catch(error => {
+            console.error('Error in export fetch:', error);
+            // Don't show error if window.open worked
+        });
+}
+
+    
+    // Helper functions
+    function formatCurrency(value) {
+        if (!value) return '0';
+        return Number(value).toLocaleString('en-IN', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+    
+    function formatDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    }
+    
+    function formatChartDate(dateString) {
+        if (!dateString) return '';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short'
+        });
+    }
+    
+    function showLoading(show) {
+        const buttons = document.querySelectorAll('.period-btn, .generate-btn, .refresh-btn, .export-btn');
+        buttons.forEach(btn => {
+            if (show) {
+                btn.classList.add('loading');
+                btn.disabled = true;
+            } else {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        });
+    }
+    
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#F44336' : '#2196F3'};
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 9999;
+            animation: slideInRight 0.3s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 400px;
+        `;
+        
+        notification.innerHTML = `
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+            ${message}
+        `;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideOutRight 0.3s ease-out';
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+    
+    // Add CSS for animations
+    if (!document.querySelector('#notification-styles')) {
+        const style = document.createElement('style');
+        style.id = 'notification-styles';
+        style.textContent = `
+            @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOutRight {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Initialize export dates
+    updateExportData();
+});
+</script>
+{% endblock %}

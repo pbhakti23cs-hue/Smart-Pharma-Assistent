@@ -1,0 +1,1277 @@
+{% extends "base.html" %}
+
+{% block title %}Check Drug Interactions - Smart Pharma Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    .interaction-container {
+        padding: 20px 0;
+        min-height: 70vh;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #7c0202, #770404);
+        color: white;
+        padding: 30px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 15px 35px rgba(211, 47, 47, 0.2);
+        position: relative;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .page-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.3;
+    }
+    
+    .page-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin-bottom: 10px;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .page-subtitle {
+        opacity: 0.9;
+        font-weight: 300;
+        font-size: 1.1rem;
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+    }
+    
+    .interaction-form-container {
+        background: white;
+        border-radius: 15px;
+        padding: 40px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border: 1px solid rgba(211, 47, 47, 0.1);
+        margin-bottom: 40px;
+    }
+    
+    .form-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #D32F2F;
+        margin-bottom: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-left: 15px;
+        border-left: 5px solid #D32F2F;
+    }
+    
+    .drugs-input-section {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        gap: 30px;
+        align-items: center;
+        margin-bottom: 40px;
+    }
+    
+    @media (max-width: 768px) {
+        .drugs-input-section {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        
+        .drug-comparison {
+            order: 3;
+            margin-top: 20px;
+        }
+    }
+    
+    .drug-input-group {
+        position: relative;
+    }
+    
+    .drug-label {
+        display: block;
+        margin-bottom: 12px;
+        font-weight: 600;
+        color: #2C3E50;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .drug-label i {
+        color: #D32F2F;
+    }
+    
+    .drug-input-wrapper {
+        position: relative;
+    }
+    
+    .drug-input {
+        width: 100%;
+        padding: 16px 20px 16px 50px;
+        border: 2px solid #E0E0E0;
+        border-radius: 10px;
+        font-size: 16px;
+        transition: all 0.3s;
+        background: #fafafa;
+        color: #333;
+    }
+    
+    .drug-input:focus {
+        outline: none;
+        border-color: #F44336;
+        background: white;
+        box-shadow: 0 0 0 3px rgba(244, 67, 54, 0.15);
+        transform: translateY(-2px);
+    }
+    
+    .drug-input-icon {
+        position: absolute;
+        left: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #90A4AE;
+        font-size: 1.2rem;
+        pointer-events: none;
+    }
+    
+    .drug-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        z-index: 100;
+        max-height: 300px;
+        overflow-y: auto;
+        display: none;
+        border: 1px solid #E0E0E0;
+        margin-top: 5px;
+    }
+    
+    .suggestion-item {
+        padding: 12px 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border-bottom: 1px solid #F5F5F5;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .suggestion-item:hover {
+        background: #FFEBEE;
+        color: #D32F2F;
+    }
+    
+    .suggestion-item:last-child {
+        border-bottom: none;
+    }
+    
+    .suggestion-name {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .suggestion-category {
+        font-size: 0.85rem;
+        color: #78909C;
+        margin-left: auto;
+    }
+    
+    .drug-comparison {
+        text-align: center;
+    }
+    
+    .comparison-icon {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, #D32F2F, #F44336);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin: 0 auto 15px;
+        box-shadow: 0 8px 20px rgba(244, 67, 54, 0.3);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .comparison-text {
+        font-weight: 700;
+        color: #D32F2F;
+        font-size: 1.1rem;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #F0F4F8;
+    }
+    
+    .check-btn {
+        padding: 18px 50px;
+        background: linear-gradient(135deg, #D32F2F, #B71C1C);
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 6px 0 #B71C1C;
+    }
+    
+    .check-btn:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 0 #B71C1C, 0 15px 25px rgba(211, 47, 47, 0.25);
+        background: linear-gradient(135deg, #B71C1C, #D32F2F);
+    }
+    
+    .check-btn:active {
+        transform: translateY(1px);
+        box-shadow: 0 4px 0 #B71C1C;
+    }
+    
+    .check-btn.loading {
+        background: linear-gradient(135deg, #B71C1C, #D32F2F);
+        cursor: not-allowed;
+    }
+    
+    .clear-btn {
+        padding: 18px 40px;
+        background: white;
+        color: #D32F2F;
+        border: 2px solid #D32F2F;
+        border-radius: 10px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .clear-btn:hover {
+        background: #FFEBEE;
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .info-section {
+        background: #FFEBEE;
+        border-left: 5px solid #F44336;
+        padding: 25px;
+        border-radius: 10px;
+        margin-bottom: 30px;
+        animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .info-title {
+        color: #D32F2F;
+        font-size: 1.3rem;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-weight: 700;
+    }
+    
+    .info-content {
+        color: #5D4037;
+        line-height: 1.6;
+        font-size: 1rem;
+    }
+    
+    .info-content ul {
+        margin: 15px 0 15px 20px;
+    }
+    
+    .info-content li {
+        margin-bottom: 8px;
+    }
+    
+    .recent-checks {
+        background: white;
+        border-radius: 15px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(211, 47, 47, 0.1);
+    }
+    
+    .recent-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #D32F2F;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .recent-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+    
+    .recent-item {
+        background: #F8F9FA;
+        border-radius: 10px;
+        padding: 20px;
+        transition: all 0.3s;
+        cursor: pointer;
+        border: 2px solid transparent;
+    }
+    
+    .recent-item:hover {
+        background: #FFEBEE;
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        border-color: #F44336;
+    }
+    
+    .recent-drugs {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .recent-drug {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        color: #D32F2F;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+        flex: 1;
+        text-align: center;
+    }
+    
+    .recent-vs {
+        color: #D32F2F;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    
+    .recent-result {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 2px solid #F0F4F8;
+    }
+    
+    .result-badge {
+        padding: 6px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .result-high {
+        background: #FFEBEE;
+        color: #D32F2F;
+    }
+    
+    .result-medium {
+        background: #FFF3CD;
+        color: #FF8F00;
+    }
+    
+    .result-low {
+        background: #E3F2FD;
+        color: #1565C0;
+    }
+    
+    .result-none {
+        background: #E8F5E9;
+        color: #388E3C;
+    }
+    
+    .recent-time {
+        font-size: 0.9rem;
+        color: #78909C;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .interaction-guide {
+        background: #F5F5F5;
+        border-radius: 10px;
+        padding: 25px;
+        margin-top: 30px;
+    }
+    
+    .guide-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2C3E50;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .severity-guide {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .severity-item {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+    
+    .severity-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .severity-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+    }
+    
+    .severity-dot.high {
+        background: #F44336;
+        box-shadow: 0 0 10px #F44336;
+        animation: pulse 1s infinite;
+    }
+    
+    .severity-dot.medium {
+        background: #FF9800;
+        box-shadow: 0 0 10px #FF9800;
+        animation: pulse 1.5s infinite;
+    }
+    
+    .severity-dot.low {
+        background: #4CAF50;
+        box-shadow: 0 0 10px #4CAF50;
+        animation: pulse 2s infinite;
+    }
+    
+    .severity-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    .severity-desc {
+        font-size: 0.9rem;
+        color: #546E7A;
+        line-height: 1.5;
+    }
+    
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        margin: 30px 0;
+    }
+    
+    .empty-icon {
+        font-size: 4rem;
+        color: #FFCDD2;
+        margin-bottom: 20px;
+        animation: bounce 2s infinite;
+    }
+    
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .empty-title {
+        font-size: 1.8rem;
+        color: #2C3E50;
+        margin-bottom: 15px;
+        font-weight: 700;
+    }
+    
+    .empty-description {
+        color: #78909C;
+        max-width: 500px;
+        margin: 0 auto 30px;
+        line-height: 1.6;
+        font-size: 1.1rem;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .interaction-form-container {
+            padding: 30px 25px;
+        }
+        
+        .form-title {
+            font-size: 1.4rem;
+        }
+        
+        .form-actions {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .check-btn, .clear-btn {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .recent-list {
+            grid-template-columns: 1fr;
+        }
+        
+        .severity-guide {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .page-header {
+            padding: 25px 20px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+        }
+        
+        .interaction-form-container {
+            padding: 25px 20px;
+        }
+        
+        .recent-drugs {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .recent-vs {
+            transform: rotate(90deg);
+        }
+    }
+    
+    /* Drug selection animation */
+    .drug-selected {
+        animation: selectedPulse 0.5s ease-out;
+    }
+    
+    @keyframes selectedPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.02); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Loading animation */
+    .loading-spinner {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255,255,255,0.3);
+        border-radius: 50%;
+        border-top-color: white;
+        animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    
+    /* Error state */
+    .error-message {
+        background: linear-gradient(135deg, #F44336, #D32F2F);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        animation: slideIn 0.3s ease-out;
+        display: none;
+    }
+    
+    /* Success state */
+    .success-message {
+        background: linear-gradient(135deg, #4CAF50, #388E3C);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        margin-top: 20px;
+        animation: slideIn 0.3s ease-out;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="interaction-container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-exclamation-triangle"></i> Drug Interaction Checker
+        </h1>
+        
+    </div>
+    
+    <!-- Main Form -->
+    <div class="interaction-form-container">
+        <h2 class="form-title">
+            <i class="fas fa-search"></i> Check Drug Interactions
+        </h2>
+        
+        
+        
+        <!-- Drug Input Section -->
+        <div class="drugs-input-section">
+            <!-- Drug 1 Input -->
+            <div class="drug-input-group">
+                <label class="drug-label">
+                    <i class="fas fa-pills"></i> First Drug
+                </label>
+                <div class="drug-input-wrapper">
+                    <input type="text" 
+                           id="drug1" 
+                           name="drug1" 
+                           class="drug-input" 
+                           placeholder="Enter drug name (e.g., Warfarin)"
+                           autocomplete="off"
+                           required>
+                    <span class="drug-input-icon">
+                        <i class="fas fa-capsules"></i>
+                    </span>
+                    <div class="drug-suggestions" id="suggestions1"></div>
+                </div>
+                <div class="form-help" style="margin-top: 8px; font-size: 0.9rem; color: #78909C;">
+                    Start typing to see suggestions
+                </div>
+            </div>
+            
+            <!-- Comparison Icon -->
+            <div class="drug-comparison">
+                <div class="comparison-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="comparison-text">INTERACTION CHECK</div>
+            </div>
+            
+            <!-- Drug 2 Input -->
+            <div class="drug-input-group">
+                <label class="drug-label">
+                    <i class="fas fa-pills"></i> Second Drug
+                </label>
+                <div class="drug-input-wrapper">
+                    <input type="text" 
+                           id="drug2" 
+                           name="drug2" 
+                           class="drug-input" 
+                           placeholder="Enter drug name (e.g., Aspirin)"
+                           autocomplete="off"
+                           required>
+                    <span class="drug-input-icon">
+                        <i class="fas fa-capsules"></i>
+                    </span>
+                    <div class="drug-suggestions" id="suggestions2"></div>
+                </div>
+                <div class="form-help" style="margin-top: 8px; font-size: 0.9rem; color: #78909C;">
+                    Start typing to see suggestions
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="button" class="clear-btn" id="clearBtn">
+                <i class="fas fa-redo"></i> Clear Form
+            </button>
+            <button type="button" class="check-btn" id="checkBtn">
+                <i class="fas fa-search"></i> Check Interaction
+            </button>
+        </div>
+        
+        <!-- Messages -->
+        <div class="error-message" id="errorMessage">
+            <i class="fas fa-exclamation-circle"></i> Please enter both drug names to check for interactions.
+        </div>
+        
+        <div class="success-message" id="successMessage">
+            <i class="fas fa-check-circle"></i> Interaction check completed! Analyzing results...
+        </div>
+    </div>
+    
+    <!-- Recent Checks -->
+    <div class="recent-checks">
+        <h2 class="recent-title">
+            <i class="fas fa-history"></i> Recent Interaction Checks
+        </h2>
+        
+        <div class="recent-list" id="recentList">
+            <!-- Recent checks will be populated by JavaScript -->
+            <div class="recent-item" onclick="loadRecentCheck('Warfarin', 'Aspirin')">
+                <div class="recent-drugs">
+                    <div class="recent-drug">Warfarin</div>
+                    <div class="recent-vs">vs</div>
+                    <div class="recent-drug">Aspirin</div>
+                </div>
+                <div class="recent-result">
+                    <span class="result-badge result-high">High Risk</span>
+                    <span class="recent-time">
+                        <i class="fas fa-clock"></i> 2 hours ago
+                    </span>
+                </div>
+            </div>
+            
+            <div class="recent-item" onclick="loadRecentCheck('Metformin', 'Alcohol')">
+                <div class="recent-drugs">
+                    <div class="recent-drug">Metformin</div>
+                    <div class="recent-vs">vs</div>
+                    <div class="recent-drug">Alcohol</div>
+                </div>
+                <div class="recent-result">
+                    <span class="result-badge result-high">High Risk</span>
+                    <span class="recent-time">
+                        <i class="fas fa-clock"></i> 1 day ago
+                    </span>
+                </div>
+            </div>
+            
+            <div class="recent-item" onclick="loadRecentCheck('Omeprazole', 'Clopidogrel')">
+                <div class="recent-drugs">
+                    <div class="recent-drug">Omeprazole</div>
+                    <div class="recent-vs">vs</div>
+                    <div class="recent-drug">Clopidogrel</div>
+                </div>
+                <div class="recent-result">
+                    <span class="result-badge result-medium">Medium Risk</span>
+                    <span class="recent-time">
+                        <i class="fas fa-clock"></i> 2 days ago
+                    </span>
+                </div>
+            </div>
+            
+            <div class="recent-item" onclick="loadRecentCheck('Cetirizine', 'Alcohol')">
+                <div class="recent-drugs">
+                    <div class="recent-drug">Cetirizine</div>
+                    <div class="recent-vs">vs</div>
+                    <div class="recent-drug">Alcohol</div>
+                </div>
+                <div class="recent-result">
+                    <span class="result-badge result-low">Low Risk</span>
+                    <span class="recent-time">
+                        <i class="fas fa-clock"></i> 3 days ago
+                    </span>
+                </div>
+            </div>
+            
+            <div class="recent-item" onclick="loadRecentCheck('Paracetamol', 'Ibuprofen')">
+                <div class="recent-drugs">
+                    <div class="recent-drug">Paracetamol</div>
+                    <div class="recent-vs">vs</div>
+                    <div class="recent-drug">Ibuprofen</div>
+                </div>
+                <div class="recent-result">
+                    <span class="result-badge result-medium">Medium Risk</span>
+                    <span class="recent-time">
+                        <i class="fas fa-clock"></i> 1 week ago
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Empty state for recent checks -->
+        <div class="empty-state" id="emptyRecent" style="display: none;">
+            <div class="empty-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <h3 class="empty-title">No Recent Checks</h3>
+            <p class="empty-description">
+                Check interactions between drugs to see them appear here. Start by entering two drug names above.
+            </p>
+        </div>
+    </div>
+    
+    
+</div>
+
+<!-- JavaScript -->
+<script>
+// Sample drug database (in production, this would come from backend)
+const drugDatabase = [
+    { name: "Warfarin", category: "Anticoagulant" },
+    { name: "Aspirin", category: "NSAID" },
+    { name: "Ibuprofen", category: "NSAID" },
+    { name: "Paracetamol", category: "Analgesic" },
+    { name: "Metformin", category: "Anti-diabetic" },
+    { name: "Amoxicillin", category: "Antibiotic" },
+    { name: "Cetirizine", category: "Antihistamine" },
+    { name: "Omeprazole", category: "Antacid" },
+    { name: "Atorvastatin", category: "Statin" },
+    { name: "Levothyroxine", category: "Thyroid hormone" },
+    { name: "Losartan", category: "ARB" },
+    { name: "Sertraline", category: "SSRI" },
+    { name: "Clopidogrel", category: "Anti-platelet" },
+    { name: "Insulin", category: "Anti-diabetic" },
+    { name: "Digoxin", category: "Cardiac glycoside" },
+    { name: "Furosemide", category: "Diuretic" },
+    { name: "Alcohol", category: "Substance" },
+    { name: "Caffeine", category: "Stimulant" },
+    { name: "Vitamin C", category: "Vitamin" },
+    { name: "Calcium", category: "Mineral" },
+    { name: "Iron", category: "Mineral" }
+];
+
+// Sample interaction database (in production, this would come from backend)
+const interactionDatabase = [
+    { drug1: "Warfarin", drug2: "Aspirin", severity: "High", description: "Increased risk of bleeding, bruising", recommendation: "Avoid combination. Monitor INR regularly if necessary." },
+    { drug1: "Warfarin", drug2: "Ibuprofen", severity: "High", description: "Increased bleeding risk, GI bleeding", recommendation: "Avoid NSAIDs with warfarin. Use paracetamol instead." },
+    { drug1: "Metformin", drug2: "Alcohol", severity: "High", description: "Risk of lactic acidosis", recommendation: "Avoid excessive alcohol consumption." },
+    { drug1: "Aspirin", drug2: "Ibuprofen", severity: "Medium", description: "Reduced cardioprotective effect of aspirin", recommendation: "Take aspirin 2 hours before ibuprofen." },
+    { drug1: "Omeprazole", drug2: "Clopidogrel", severity: "Medium", description: "Reduced effectiveness of clopidogrel", recommendation: "Consider alternative PPI like pantoprazole." },
+    { drug1: "Cetirizine", drug2: "Alcohol", severity: "Low", description: "Increased drowsiness, impaired coordination", recommendation: "Avoid driving or operating machinery." },
+    { drug1: "Paracetamol", drug2: "Ibuprofen", severity: "Medium", description: "Potential for increased side effects", recommendation: "Monitor for liver and kidney function." }
+];
+
+document.addEventListener('DOMContentLoaded', function() {
+    // DOM Elements
+    const drug1Input = document.getElementById('drug1');
+    const drug2Input = document.getElementById('drug2');
+    const suggestions1 = document.getElementById('suggestions1');
+    const suggestions2 = document.getElementById('suggestions2');
+    const checkBtn = document.getElementById('checkBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+    const recentList = document.getElementById('recentList');
+    const emptyRecent = document.getElementById('emptyRecent');
+    
+    // State variables
+    let recentChecks = JSON.parse(localStorage.getItem('recentInteractionChecks')) || [
+        { drug1: 'Warfarin', drug2: 'Aspirin', severity: 'High', timestamp: Date.now() - 7200000 },
+        { drug1: 'Metformin', drug2: 'Alcohol', severity: 'High', timestamp: Date.now() - 86400000 },
+        { drug1: 'Omeprazole', drug2: 'Clopidogrel', severity: 'Medium', timestamp: Date.now() - 172800000 },
+        { drug1: 'Cetirizine', drug2: 'Alcohol', severity: 'Low', timestamp: Date.now() - 259200000 },
+        { drug1: 'Paracetamol', drug2: 'Ibuprofen', severity: 'Medium', timestamp: Date.now() - 604800000 }
+    ];
+    
+    // Initialize
+    setupEventListeners();
+    updateRecentChecksDisplay();
+    
+    // Setup event listeners
+    function setupEventListeners() {
+        // Drug 1 input suggestions
+        drug1Input.addEventListener('input', function() {
+            showSuggestions(this.value, suggestions1, drug1Input);
+        });
+        
+        // Drug 2 input suggestions
+        drug2Input.addEventListener('input', function() {
+            showSuggestions(this.value, suggestions2, drug2Input);
+        });
+        
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!drug1Input.contains(e.target) && !suggestions1.contains(e.target)) {
+                suggestions1.style.display = 'none';
+            }
+            if (!drug2Input.contains(e.target) && !suggestions2.contains(e.target)) {
+                suggestions2.style.display = 'none';
+            }
+        });
+        
+        // Check button
+        checkBtn.addEventListener('click', checkInteraction);
+        
+        // Clear button
+        clearBtn.addEventListener('click', clearForm);
+        
+        // Enter key to check
+        drug1Input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkInteraction();
+        });
+        
+        drug2Input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkInteraction();
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Enter to check
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                checkInteraction();
+            }
+            
+            // Escape to clear
+            if (e.key === 'Escape') {
+                clearForm();
+            }
+        });
+    }
+    
+    // Show drug suggestions
+    function showSuggestions(query, container, inputElement) {
+        if (!query.trim()) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        const filteredDrugs = drugDatabase.filter(drug =>
+            drug.name.toLowerCase().includes(query.toLowerCase()) ||
+            drug.category.toLowerCase().includes(query.toLowerCase())
+        );
+        
+        if (filteredDrugs.length === 0) {
+            container.innerHTML = '<div class="suggestion-item">No matching drugs found</div>';
+            container.style.display = 'block';
+            return;
+        }
+        
+        container.innerHTML = filteredDrugs.map(drug => `
+            <div class="suggestion-item" data-drug="${drug.name}" data-category="${drug.category}">
+                <i class="fas fa-pills"></i>
+                <span class="suggestion-name">${drug.name}</span>
+                <span class="suggestion-category">${drug.category}</span>
+            </div>
+        `).join('');
+        
+        // Add click listeners to suggestions
+        container.querySelectorAll('.suggestion-item').forEach(item => {
+            item.addEventListener('click', function() {
+                const drugName = this.getAttribute('data-drug');
+                const drugCategory = this.getAttribute('data-category');
+                
+                inputElement.value = drugName;
+                inputElement.classList.add('drug-selected');
+                setTimeout(() => inputElement.classList.remove('drug-selected'), 500);
+                
+                // Show category as help text
+                const helpText = inputElement.parentElement.nextElementSibling;
+                helpText.innerHTML = `<i class="fas fa-tag"></i> ${drugCategory}`;
+                helpText.style.color = '#D32F2F';
+                helpText.style.fontWeight = '600';
+                
+                container.style.display = 'none';
+            });
+        });
+        
+        container.style.display = 'block';
+    }
+    
+    // Check interaction
+    function checkInteraction() {
+        const drug1 = drug1Input.value.trim();
+        const drug2 = drug2Input.value.trim();
+        
+        // Validate inputs
+        if (!drug1 || !drug2) {
+            showError('Please enter both drug names to check for interactions.');
+            return;
+        }
+        
+        if (drug1.toLowerCase() === drug2.toLowerCase()) {
+            showError('Please enter two different drug names.');
+            return;
+        }
+        
+        // Hide error, show success
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'block';
+        
+        // Show loading state
+        checkBtn.classList.add('loading');
+        checkBtn.disabled = true;
+        checkBtn.innerHTML = '<span class="loading-spinner"></span> Checking...';
+        
+        // Simulate API call
+        setTimeout(() => {
+            // Find interaction in database
+            const interaction = findInteraction(drug1, drug2);
+            
+            // Add to recent checks
+            addToRecentChecks(drug1, drug2, interaction ? interaction.severity : 'None');
+            
+            // Reset button
+            checkBtn.classList.remove('loading');
+            checkBtn.disabled = false;
+            checkBtn.innerHTML = '<i class="fas fa-search"></i> Check Interaction';
+            
+            // Hide success message
+            successMessage.style.display = 'none';
+            
+            // Navigate to results page
+            navigateToResults(drug1, drug2, interaction);
+            
+        }, 1500);
+    }
+    
+    // Find interaction in database
+    function findInteraction(drug1, drug2) {
+        return interactionDatabase.find(interaction =>
+            (interaction.drug1.toLowerCase() === drug1.toLowerCase() && 
+             interaction.drug2.toLowerCase() === drug2.toLowerCase()) ||
+            (interaction.drug1.toLowerCase() === drug2.toLowerCase() && 
+             interaction.drug2.toLowerCase() === drug1.toLowerCase())
+        );
+    }
+    
+    // Add to recent checks
+    function addToRecentChecks(drug1, drug2, severity) {
+        const newCheck = {
+            drug1: drug1,
+            drug2: drug2,
+            severity: severity,
+            timestamp: Date.now()
+        };
+        
+        // Add to beginning of array
+        recentChecks.unshift(newCheck);
+        
+        // Keep only last 10 checks
+        if (recentChecks.length > 10) {
+            recentChecks = recentChecks.slice(0, 10);
+        }
+        
+        // Save to localStorage
+        localStorage.setItem('recentInteractionChecks', JSON.stringify(recentChecks));
+        
+        // Update display
+        updateRecentChecksDisplay();
+    }
+    
+    // Update recent checks display
+    function updateRecentChecksDisplay() {
+        if (recentChecks.length === 0) {
+            recentList.style.display = 'none';
+            emptyRecent.style.display = 'block';
+            return;
+        }
+        
+        recentList.style.display = 'grid';
+        emptyRecent.style.display = 'none';
+        
+        recentList.innerHTML = recentChecks.map((check, index) => {
+            const timeAgo = getTimeAgo(check.timestamp);
+            const severityClass = getSeverityClass(check.severity);
+            const severityText = getSeverityText(check.severity);
+            
+            return `
+                <div class="recent-item" onclick="loadRecentCheck('${check.drug1}', '${check.drug2}')" data-index="${index}">
+                    <div class="recent-drugs">
+                        <div class="recent-drug">${check.drug1}</div>
+                        <div class="recent-vs">vs</div>
+                        <div class="recent-drug">${check.drug2}</div>
+                    </div>
+                    <div class="recent-result">
+                        <span class="result-badge ${severityClass}">${severityText}</span>
+                        <span class="recent-time">
+                            <i class="fas fa-clock"></i> ${timeAgo}
+                        </span>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    // Get time ago string
+    function getTimeAgo(timestamp) {
+        const now = Date.now();
+        const diff = now - timestamp;
+        
+        const minutes = Math.floor(diff / (1000 * 60));
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+        if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+        return `${days} day${days !== 1 ? 's' : ''} ago`;
+    }
+    
+    // Get severity class
+    function getSeverityClass(severity) {
+        switch(severity.toLowerCase()) {
+            case 'high': return 'result-high';
+            case 'medium': return 'result-medium';
+            case 'low': return 'result-low';
+            default: return 'result-none';
+        }
+    }
+    
+    // Get severity text
+    function getSeverityText(severity) {
+        switch(severity.toLowerCase()) {
+            case 'high': return 'High Risk';
+            case 'medium': return 'Medium Risk';
+            case 'low': return 'Low Risk';
+            default: return 'No Risk';
+        }
+    }
+    
+    // Clear form
+    function clearForm() {
+        drug1Input.value = '';
+        drug2Input.value = '';
+        
+        // Reset help text
+        document.querySelectorAll('.form-help').forEach(help => {
+            help.innerHTML = 'Start typing to see suggestions';
+            help.style.color = '#78909C';
+            help.style.fontWeight = 'normal';
+        });
+        
+        // Hide messages
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+        
+        // Focus on first input
+        drug1Input.focus();
+    }
+    
+    // Show error message
+    function showError(message) {
+        errorMessage.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+        errorMessage.style.display = 'block';
+        
+        // Auto-hide after 5 seconds
+        setTimeout(() => {
+            errorMessage.style.display = 'none';
+        }, 5000);
+    }
+    
+    // Navigate to results page
+    function navigateToResults(drug1, drug2, interaction) {
+        // Create a form to submit to interaction_result.html
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ url_for('check_interaction') }}";
+        
+        // Add drug1 input
+        const input1 = document.createElement('input');
+        input1.type = 'hidden';
+        input1.name = 'drug1';
+        input1.value = drug1;
+        form.appendChild(input1);
+        
+        // Add drug2 input
+        const input2 = document.createElement('input');
+        input2.type = 'hidden';
+        input2.name = 'drug2';
+        input2.value = drug2;
+        form.appendChild(input2);
+        
+        // Add interaction data
+        const interactionData = document.createElement('input');
+        interactionData.type = 'hidden';
+        interactionData.name = 'interaction_data';
+        interactionData.value = JSON.stringify(interaction || {});
+        form.appendChild(interactionData);
+        
+        // Submit the form
+        document.body.appendChild(form);
+        form.submit();
+    }
+    
+    // Initialize with sample data if empty
+    if (recentChecks.length === 0) {
+        updateRecentChecksDisplay();
+    }
+});
+
+// Global function to load recent check
+function loadRecentCheck(drug1, drug2) {
+    document.getElementById('drug1').value = drug1;
+    document.getElementById('drug2').value = drug2;
+    
+    // Update help text with categories if available
+    const drug1Info = drugDatabase.find(d => d.name.toLowerCase() === drug1.toLowerCase());
+    const drug2Info = drugDatabase.find(d => d.name.toLowerCase() === drug2.toLowerCase());
+    
+    if (drug1Info) {
+        const help1 = document.getElementById('drug1').parentElement.nextElementSibling;
+        help1.innerHTML = `<i class="fas fa-tag"></i> ${drug1Info.category}`;
+        help1.style.color = '#D32F2F';
+        help1.style.fontWeight = '600';
+    }
+    
+    if (drug2Info) {
+        const help2 = document.getElementById('drug2').parentElement.nextElementSibling;
+        help2.innerHTML = `<i class="fas fa-tag"></i> ${drug2Info.category}`;
+        help2.style.color = '#D32F2F';
+        help2.style.fontWeight = '600';
+    }
+    
+    // Scroll to form
+    document.querySelector('.interaction-form-container').scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+    });
+    
+    // Show check button pulse
+    const checkBtn = document.getElementById('checkBtn');
+    checkBtn.classList.add('drug-selected');
+    setTimeout(() => checkBtn.classList.remove('drug-selected'), 500);
+}
+
+// Add CSS for animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(20px); }
+    }
+    
+    @keyframes slideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

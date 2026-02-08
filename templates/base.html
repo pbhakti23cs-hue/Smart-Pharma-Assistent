@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Pharma Assistant - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme-3d.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Add active link styling -->
+    <style>
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+            border-radius: 5px;
+        }
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        .navbar {
+            background: linear-gradient(135deg, #1565C0, #0D47A1);
+            color: white;
+            padding: 12px 0;  /* Reduced padding */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav-brand {
+            font-size: 1.3rem;  /* Reduced font size */
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;  /* Reduced gap */
+            transition: transform 0.3s;
+        }
+        .nav-brand:hover {
+            transform: scale(1.05);
+        }
+        .nav-menu {
+            display: flex;
+            gap: 3px;  /* Reduced gap between menu items */
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            align-items: center;
+        }
+        .nav-link {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            padding: 8px 10px;  /* Reduced padding */
+            border-radius: 6px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;  /* Reduced gap */
+            font-weight: 500;
+            white-space: nowrap;
+            font-size: 0.85rem;  /* Smaller font size */
+        }
+        .nav-link i {
+            font-size: 0.95rem;  /* Smaller icon size */
+            width: 18px;  /* Reduced width */
+            text-align: center;
+        }
+        .user-dropdown {
+            font-size: 0.85rem;  /* Smaller font for dropdown */
+        }
+        .alert-badge {
+            background: #FF5252;
+            color: white;
+            padding: 1px 5px;  /* Reduced padding */
+            border-radius: 8px;
+            font-size: 0.65rem;  /* Smaller badge font */
+            font-weight: bold;
+            margin-left: 3px;  /* Reduced margin */
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto; padding: 0 15px;">
+            <a href="{{ url_for('dashboard') }}" class="nav-brand">
+                <i class="fas fa-pills"></i> Smart Pharma Assistant
+            </a>
+            
+            {% if session.get('user_id') %}
+            <ul class="nav-menu">
+                <!-- Dashboard -->
+                <li>
+                    <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                
+                <!-- Medicines -->
+                <li>
+                    <a href="{{ url_for('view_medicines') }}" class="nav-link {% if request.endpoint in ['view_medicines', 'add_medicine', 'edit_medicine', 'medicine_details'] %}active{% endif %}">
+                        <i class="fas fa-capsules"></i> Medicines
+                    </a>
+                </li>
+                
+                <!-- Sell Medicine -->
+                <li>
+                    <a href="{{ url_for('sell_medicine') }}" class="nav-link {% if request.endpoint == 'sell_medicine' %}active{% endif %}">
+                        <i class="fas fa-cash-register"></i> Sell
+                    </a>
+                </li>
+                
+            
+                
+                <!-- AI Recommend -->
+                <li>
+                    <a href="{{ url_for('recommend_medicine') }}" class="nav-link {% if request.endpoint == 'recommend_medicine' %}active{% endif %}">
+                        <i class="fas fa-robot"></i> AI
+                    </a>
+                </li>
+                
+                <!-- Interactions -->
+                <li>
+                    <a href="{{ url_for('check_interaction') }}" class="nav-link {% if request.endpoint in ['check_interaction', 'interaction_result'] %}active{% endif %}">
+                        <i class="fas fa-exclamation-triangle"></i> Interactions
+                    </a>
+                </li>
+                
+                <!-- Alerts -->
+                <li>
+                    <a href="{{ url_for('view_alerts') }}" class="nav-link {% if request.endpoint == 'view_alerts' %}active{% endif %}">
+                        <i class="fas fa-bell"></i> Alerts
+                        {% if g.get('unread_alerts_count', 0) > 0 %}
+                        <span class="alert-badge">{{ g.unread_alerts_count }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                
+                <!-- Reports -->
+                <li>
+                    <a href="{{ url_for('reports') }}" class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}">
+                        <i class="fas fa-chart-bar"></i> Reports
+                    </a>
+                </li>
+                
+            
+                
+                <!-- User Info Dropdown -->
+                <li style="position: relative; margin-left: 5px;">
+                    <a href="#" class="nav-link user-dropdown" id="userDropdown" style="background: rgba(255, 255, 255, 0.1); padding: 6px 8px;">
+                        <i class="fas fa-user-md"></i>
+                        <span style="max-width: 80px; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem;">
+                            {{ session.username[:8] if session.username and session.username|length > 8 else session.username if session.username else 'User' }}
+                        </span>
+                        <i class="fas fa-caret-down" style="margin-left: 3px; font-size: 0.8rem;"></i>
+                    </a>
+                    <div id="userDropdownMenu" style="display: none; position: absolute; right: 0; top: 100%; background: white; color: #333; min-width: 180px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border-radius: 6px; z-index: 1001; overflow: hidden; font-size: 0.85rem;">
+                        <div style="padding: 12px; background: #1565C0; color: white;">
+                            <div style="font-weight: bold; display: flex; align-items: center; gap: 8px; font-size: 0.9rem;">
+                                <i class="fas fa-user-md"></i>
+                                {{ session.username if session.username else 'User' }}
+                            </div>
+                            <div style="font-size: 0.75rem; opacity: 0.9; margin-top: 3px;">
+                                Pharmacist
+                            </div>
+                        </div>
+                        <div style="padding: 8px 0;">
+                            <a href="{{ url_for('dashboard') }}" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; color: #333; text-decoration: none; transition: background 0.3s; font-size: 0.85rem;">
+                                <i class="fas fa-tachometer-alt"></i>
+                                Dashboard
+                            </a>
+                            <a href="{{ url_for('reports') }}" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; color: #333; text-decoration: none; transition: background 0.3s; font-size: 0.85rem;">
+                                <i class="fas fa-chart-bar"></i>
+                                Reports
+                            </a>
+                            <div style="border-top: 1px solid #eee; margin: 3px 0;"></div>
+                            <a href="{{ url_for('logout') }}" style="display: flex; align-items: center; gap: 8px; padding: 8px 12px; color: #333; text-decoration: none; transition: background 0.3s; font-size: 0.85rem;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 15px; min-height: 70vh;">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}" style="animation: slideIn 0.3s ease-out;">
+                        <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                        {{ message }}
+                        <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer style="background: linear-gradient(135deg, #0D47A1, #1565C0); color: white; padding: 20px 0; margin-top: 30px; border-top: 3px solid rgba(255, 255, 255, 0.1);">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 15px; text-align: center;">
+            
+            <p style="margin: 8px 0; font-size: 0.85rem; opacity: 0.9;">
+                <i class="fas fa-copyright"></i> 2026 Smart Pharma Assistant
+            </p>
+ 
+        </div>
+    </footer>
+
+    <!-- JavaScript for dropdown and animations -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // User dropdown functionality
+            const userDropdown = document.getElementById('userDropdown');
+            const userDropdownMenu = document.getElementById('userDropdownMenu');
+            
+            if (userDropdown && userDropdownMenu) {
+                userDropdown.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    userDropdownMenu.style.display = userDropdownMenu.style.display === 'block' ? 'none' : 'block';
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (!userDropdown.contains(e.target) && !userDropdownMenu.contains(e.target)) {
+                        userDropdownMenu.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Auto-hide flash messages after 5 seconds
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.style.animation = 'fadeOut 0.5s ease-out';
+                    setTimeout(() => {
+                        alert.style.display = 'none';
+                    }, 500);
+                }, 5000);
+            });
+            
+            // Update status indicators
+            function updateStatus() {
+                const dbStatus = document.getElementById('dbStatus');
+                if (dbStatus) {
+                    // Simulate status check - in real app, make API call
+                    const isOnline = Math.random() > 0.05;
+                    dbStatus.textContent = isOnline ? 'Database: Connected' : 'Database: Checking...';
+                    dbStatus.style.color = isOnline ? 'inherit' : '#FF9800';
+                }
+            }
+            
+            // Check status every 30 seconds
+            updateStatus();
+            setInterval(updateStatus, 30000);
+        });
+        
+        // Add CSS animations
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            @keyframes fadeOut {
+                from {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+                to {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+            }
+            .alert {
+                position: relative;
+                padding: 12px 15px;
+                border-radius: 6px;
+                margin-bottom: 15px;
+                border-left: 4px solid;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 0.9rem;
+            }
+            .alert-success {
+                background: #D4EDDA;
+                color: #155724;
+                border-left-color: #28A745;
+            }
+            .alert-danger {
+                background: #F8D7DA;
+                color: #721C24;
+                border-left-color: #DC3545;
+            }
+            .alert-info {
+                background: #D1ECF1;
+                color: #0C5460;
+                border-left-color: #17A2B8;
+            }
+            .alert-warning {
+                background: #FFF3CD;
+                color: #856404;
+                border-left-color: #FFC107;
+            }
+            .alert-close {
+                position: absolute;
+                right: 12px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: none;
+                border: none;
+                font-size: 0.9rem;
+                cursor: pointer;
+                opacity: 0.6;
+                transition: opacity 0.3s;
+            }
+            .alert-close:hover {
+                opacity: 1;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,1413 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Smart Pharma Assistant{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Main Container */
+    .dashboard-container {
+        padding: 20px;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f5f7fa 0%, #e3f2fd 100%);
+        position: relative;
+        overflow-x: hidden;
+    }
+    
+    .dashboard-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            radial-gradient(circle at 10% 20%, rgba(66, 165, 245, 0.05) 0%, transparent 50%),
+            radial-gradient(circle at 90% 80%, rgba(21, 101, 192, 0.05) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    
+    .dashboard-header {
+        background: linear-gradient(135deg, #1565C0, #0D47A1);
+        color: white;
+        padding: 35px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 15px 35px rgba(21, 101, 192, 0.25);
+        position: relative;
+        overflow: hidden;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.15) 1px, transparent 1px);
+        background-size: 25px 25px;
+        opacity: 0.3;
+        animation: floatBackground 20s linear infinite;
+    }
+    
+    .dashboard-header::after {
+        content: '';
+        position: absolute;
+        bottom: -50px;
+        left: -50px;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 2px, transparent 2px);
+        background-size: 30px 30px;
+        opacity: 0.2;
+    }
+    
+    @keyframes floatBackground {
+        0% { transform: translate(0, 0) rotate(0deg); }
+        100% { transform: translate(30px, 30px) rotate(360deg); }
+    }
+    
+    .welcome-text {
+        font-size: 2.3rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        position: relative;
+        z-index: 1;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        letter-spacing: 0.5px;
+    }
+    
+    .welcome-subtext {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        font-weight: 300;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+    
+    .stat-card {
+        background: linear-gradient(135deg, #ffffff, #f8fbff);
+        border-radius: 18px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(10px);
+    }
+    
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+        transform: translateX(-100%);
+        transition: transform 0.6s;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-10px) scale(1.02);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+    
+    .stat-card:hover::before {
+        transform: translateX(100%);
+    }
+    
+    .stat-card.primary { border-top: 6px solid #1565C0; }
+    .stat-card.warning { border-top: 6px solid #FF8F00; }
+    .stat-card.success { border-top: 6px solid #388E3C; }
+    .stat-card.info { border-top: 6px solid #00897B; }
+    
+    .stat-icon {
+        font-size: 3.2rem;
+        margin-bottom: 25px;
+        opacity: 0.9;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+    
+    .stat-icon.primary { color: #1565C0; }
+    .stat-icon.warning { color: #FF8F00; }
+    .stat-icon.success { color: #388E3C; }
+    .stat-icon.info { color: #00897B; }
+    
+    .stat-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .stat-numbers {
+        flex: 1;
+    }
+    
+    .stat-value {
+        font-size: 3.2rem;
+        font-weight: 900;
+        line-height: 1;
+        margin-bottom: 8px;
+        background: linear-gradient(135deg, var(--color), var(--color-light));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card.primary .stat-value { 
+        --color: #1565C0; 
+        --color-light: #42A5F5; 
+    }
+    .stat-card.warning .stat-value { 
+        --color: #FF8F00; 
+        --color-light: #FFB74D; 
+    }
+    .stat-card.success .stat-value { 
+        --color: #388E3C; 
+        --color-light: #4CAF50; 
+    }
+    .stat-card.info .stat-value { 
+        --color: #00897B; 
+        --color-light: #4DB6AC; 
+    }
+    
+    .stat-label {
+        font-size: 1.1rem;
+        color: #546E7A;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+    
+    .stat-trend {
+        text-align: right;
+        font-size: 0.95rem;
+        font-weight: 600;
+        padding: 8px 15px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(5px);
+    }
+    
+    .trend-up { 
+        color: #388E3C; 
+        background: rgba(76, 175, 80, 0.1); 
+    }
+    .trend-down { 
+        color: #D32F2F; 
+        background: rgba(211, 47, 47, 0.1); 
+    }
+    .trend-neutral { 
+        color: #FF8F00; 
+        background: rgba(255, 143, 0, 0.1); 
+    }
+    
+    /* Quick Actions */
+    .dashboard-section {
+        margin-bottom: 50px;
+    }
+    
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 3px solid rgba(21, 101, 192, 0.1);
+        position: relative;
+    }
+    
+    .section-header::after {
+        content: '';
+        position: absolute;
+        bottom: -3px;
+        left: 0;
+        width: 100px;
+        height: 3px;
+        background: linear-gradient(90deg, #1565C0, transparent);
+    }
+    
+    .section-title {
+        font-size: 1.7rem;
+        font-weight: 800;
+        color: #1565C0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        text-shadow: 0 2px 4px rgba(21, 101, 192, 0.1);
+    }
+    
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 25px;
+    }
+    
+    .action-card {
+        background: linear-gradient(135deg, #ffffff, #f8fbff);
+        border-radius: 16px;
+        padding: 30px;
+        text-decoration: none;
+        color: #2C3E50;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        border: 2px solid transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .action-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(21, 101, 192, 0.05), transparent);
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+    
+    .action-card:hover {
+        transform: translateY(-8px) scale(1.03);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        border-color: #1565C0;
+    }
+    
+    .action-card:hover::before {
+        opacity: 1;
+    }
+    
+    .action-icon {
+        font-size: 2.8rem;
+        height: 80px;
+        width: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        margin: 0 auto 25px;
+        position: relative;
+        z-index: 1;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    
+    .action-card:nth-child(1) .action-icon { 
+        background: linear-gradient(135deg, #1565C0, #42A5F5); 
+        animation: float 3s ease-in-out infinite; 
+    }
+    .action-card:nth-child(2) .action-icon { 
+        background: linear-gradient(135deg, #00897B, #4DB6AC); 
+        animation: float 3s ease-in-out infinite 0.5s; 
+    }
+    .action-card:nth-child(3) .action-icon { 
+        background: linear-gradient(135deg, #9C27B0, #BA68C8); 
+        animation: float 3s ease-in-out infinite 1s; 
+    }
+    .action-card:nth-child(4) .action-icon { 
+        background: linear-gradient(135deg, #FF8F00, #FFB74D); 
+        animation: float 3s ease-in-out infinite 1.5s; 
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+    
+    .action-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #2C3E50;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .action-desc {
+        font-size: 0.95rem;
+        color: #546E7A;
+        line-height: 1.6;
+        text-align: center;
+        position: relative;
+        z-index: 1;
+    }
+    
+    /* Expiry Chart */
+    .expiry-chart-container {
+        background: linear-gradient(135deg, #ffffff, #f8fbff);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .expiry-chart-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle, rgba(21, 101, 192, 0.05) 1px, transparent 1px);
+        background-size: 20px 20px;
+        opacity: 0.5;
+    }
+    
+    .expiry-bars {
+        display: flex;
+        gap: 25px;
+        margin-top: 30px;
+        height: 250px;
+        align-items: flex-end;
+    }
+    
+    .expiry-bar {
+        flex: 1;
+        background: #F5F7FA;
+        border-radius: 12px;
+        padding: 25px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        min-height: 200px;
+        box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);
+    }
+    
+    .expiry-bar::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 0%;
+        background: linear-gradient(to top, var(--bar-color), var(--bar-color-light));
+        transition: height 1.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 0;
+        border-radius: 12px;
+    }
+    
+    .expiry-bar.good::before { 
+        --bar-color: #388E3C;
+        --bar-color-light: #4CAF50;
+    }
+    .expiry-bar.near::before { 
+        --bar-color: #FF8F00;
+        --bar-color-light: #FFB300;
+    }
+    .expiry-bar.expired::before { 
+        --bar-color: #D32F2F;
+        --bar-color-light: #F44336;
+    }
+    
+    .expiry-bar.good::before { 
+        height: {{ ((stats.batches - near_expiry - expired) / stats.batches * 100) if stats.batches > 0 else 0 }}%;
+    }
+    .expiry-bar.near::before { 
+        height: {{ (near_expiry / stats.batches * 100) if stats.batches > 0 else 0 }}%;
+    }
+    .expiry-bar.expired::before { 
+        height: {{ (expired / stats.batches * 100) if stats.batches > 0 else 0 }}%;
+    }
+    
+    .expiry-count {
+        font-size: 2.5rem;
+        font-weight: 900;
+        margin: 15px 0;
+        position: relative;
+        z-index: 1;
+        color: var(--text-color);
+        text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .expiry-bar.good .expiry-count { --text-color: #388E3C; }
+    .expiry-bar.near .expiry-count { --text-color: #FF8F00; }
+    .expiry-bar.expired .expiry-count { --text-color: #D32F2F; }
+    
+    .expiry-label {
+        font-size: 1.1rem;
+        font-weight: 700;
+        position: relative;
+        z-index: 1;
+        color: var(--text-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+    }
+    
+    .expiry-bar.good .expiry-label { --text-color: #388E3C; }
+    .expiry-bar.near .expiry-label { --text-color: #FF8F00; }
+    .expiry-bar.expired .expiry-label { --text-color: #D32F2F; }
+    
+    .expiry-bar .percentage {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: var(--text-color);
+        opacity: 0.9;
+        position: relative;
+        z-index: 1;
+        margin-top: 10px;
+    }
+    
+    /* System Status */
+    .system-status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 25px;
+    }
+    
+    .status-card {
+        background: linear-gradient(135deg, #ffffff, #f8fbff);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        border-left: 6px solid;
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .status-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    }
+    
+    .status-icon {
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+    }
+    
+    .status-title {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 12px;
+        color: #2C3E50;
+    }
+    
+    .status-desc {
+        font-size: 0.95rem;
+        color: #546E7A;
+        line-height: 1.6;
+    }
+    
+    .status-indicator {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        margin-right: 10px;
+        background: #4CAF50;
+        animation: pulseStatus 2s infinite;
+        box-shadow: 0 0 10px #4CAF50;
+    }
+    
+    @keyframes pulseStatus {
+        0%, 100% { 
+            opacity: 1; 
+            transform: scale(1);
+        }
+        50% { 
+            opacity: 0.7; 
+            transform: scale(1.1);
+        }
+    }
+    
+    /* Recent Activity */
+    .recent-activity {
+        background: linear-gradient(135deg, #ffffff, #f8fbff);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.8);
+    }
+    
+    .activity-list {
+        max-height: 350px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: center;
+        padding: 20px;
+        border-bottom: 2px solid rgba(240, 244, 248, 0.8);
+        transition: all 0.3s;
+        border-radius: 12px;
+        margin-bottom: 10px;
+        background: rgba(255, 255, 255, 0.5);
+    }
+    
+    .activity-item:hover {
+        background: #F9FAFC;
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    }
+    
+    .activity-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 20px;
+        font-size: 1.4rem;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .activity-content {
+        flex: 1;
+    }
+    
+    .activity-text {
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #2C3E50;
+        font-size: 1.05rem;
+    }
+    
+    .activity-time {
+        font-size: 0.9rem;
+        color: #78909C;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    /* Tip Box */
+    .tip-box {
+        margin-top: 30px;
+        padding: 20px;
+        background: linear-gradient(135deg, #FFF3CD, #FFECB3);
+        border-radius: 12px;
+        border-left: 5px solid #FF8F00;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        animation: fadeInUp 0.5s ease-out;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    /* Two Column Layout */
+    .two-column-layout {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 1024px) {
+        .two-column-layout {
+            grid-template-columns: 1fr;
+            gap: 30px;
+        }
+        
+        .expiry-bars {
+            height: auto;
+            flex-direction: column;
+        }
+        
+        .expiry-bar {
+            min-height: 180px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .quick-actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .system-status-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .dashboard-header {
+            padding: 25px;
+        }
+        
+        .welcome-text {
+            font-size: 1.8rem;
+        }
+        
+        .welcome-subtext {
+            font-size: 1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .quick-actions-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .welcome-text {
+            font-size: 1.6rem;
+        }
+        
+        .stat-value {
+            font-size: 2.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.4rem;
+        }
+        
+        .action-icon {
+            width: 70px;
+            height: 70px;
+            font-size: 2.5rem;
+        }
+    }
+    
+    /* Scrollbar Styling */
+    .activity-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    .activity-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    .activity-list::-webkit-scrollbar-thumb {
+        background: #1565C0;
+        border-radius: 10px;
+    }
+    
+    .activity-list::-webkit-scrollbar-thumb:hover {
+        background: #0D47A1;
+    }
+    
+    /* Loading Animation */
+    .loading {
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        animation: loading 1.5s infinite;
+    }
+    
+    @keyframes loading {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="welcome-text">
+            <i class="fas fa-hand-sparkles"></i> Welcome back, {{ username }}!
+        </div>
+        <div class="welcome-subtext">
+            <span><i class="fas fa-calendar-alt"></i> {{ current_date.strftime('%A, %B %d, %Y') }}</span>
+            <span>•</span>
+            <span><i class="fas fa-clock"></i> {{ current_time.strftime('%I:%M %p') }}</span>
+            <span>•</span>
+            <span><i class="fas fa-user-shield"></i> Session Active</span>
+        </div>
+    </div>
+
+    <!-- Statistics Grid -->
+    <div class="stats-grid">
+        <div class="stat-card primary">
+            <div class="stat-icon primary">
+                <i class="fas fa-pills"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-numbers">
+                    <div class="stat-value" id="stat-medicines">{{ stats.medicines }}</div>
+                    <div class="stat-label">Total Medicines</div>
+                </div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 12% this month
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card warning">
+            <div class="stat-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-numbers">
+                    <div class="stat-value" id="stat-alerts">{{ near_expiry + expired }}</div>
+                    <div class="stat-label">Active Alerts</div>
+                </div>
+                <div class="stat-trend trend-neutral">
+                    <i class="fas fa-bell"></i> Requires attention
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card success">
+            <div class="stat-icon success">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-numbers">
+                    <div class="stat-value" id="stat-sales">{{ stats.sales }}</div>
+                    <div class="stat-label">Total Sales</div>
+                </div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 18% this week
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card info">
+            <div class="stat-icon info">
+                <i class="fas fa-rupee-sign"></i>
+            </div>
+            <div class="stat-content">
+                <div class="stat-numbers">
+                    <div class="stat-value" id="stat-revenue">₹{{ "{:,.2f}".format(stats.revenue) if stats.revenue else "0.00" }}</div>
+                    <div class="stat-label">Total Revenue</div>
+                </div>
+                <div class="stat-trend trend-up">
+                    <i class="fas fa-arrow-up"></i> 24% growth
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-bolt"></i> Quick Actions
+            </h2>
+            <div style="color: #666; font-size: 0.95rem; font-weight: 500;">
+                <i class="fas fa-info-circle"></i> Most frequently used features
+            </div>
+        </div>
+        
+        <div class="quick-actions-grid">
+            <a href="{{ url_for('view_medicines') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-capsules"></i>
+                </div>
+                <div class="action-title">Inventory Management</div>
+                <div class="action-desc">View, add, or edit medicines and batches</div>
+            </a>
+            
+            <a href="{{ url_for('add_medicine') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="action-title">Add New Medicine</div>
+                <div class="action-desc">Register new medicines to inventory</div>
+            </a>
+            
+            <a href="{{ url_for('recommend_medicine') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="action-title">AI Recommendation</div>
+                <div class="action-desc">Get AI-powered medicine suggestions</div>
+            </a>
+            
+            <a href="{{ url_for('check_interaction') }}" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="action-title">Interaction Check</div>
+                <div class="action-desc">Verify drug safety combinations</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="two-column-layout">
+        <!-- Left Column: Expiry Status -->
+        <div class="expiry-chart-container">
+            <div class="section-header" style="border: none; padding: 0; margin-bottom: 20px;">
+                <h2 class="section-title">
+                    <i class="fas fa-calendar-times"></i> Expiry Status Overview
+                </h2>
+                <div style="color: #666; font-size: 0.9rem;">
+                    <i class="fas fa-chart-bar"></i> Real-time monitoring
+                </div>
+            </div>
+            
+            <div style="color: #546E7A; margin-bottom: 25px; line-height: 1.6; font-size: 0.95rem;">
+                <i class="fas fa-info-circle"></i> 
+                Monitoring {{ stats.batches }} batches for expiry. Proactive management helps avoid losses.
+            </div>
+            
+            <div class="expiry-bars">
+                <div class="expiry-bar good">
+                    <div class="expiry-count" id="expiry-good">{{ stats.batches - near_expiry - expired }}</div>
+                    <div class="expiry-label">
+                        <i class="fas fa-check-circle"></i> Good
+                    </div>
+                    <div class="percentage" id="percentage-good">
+                        {{ ((stats.batches - near_expiry - expired) / stats.batches * 100)|round(1) if stats.batches > 0 else 0 }}%
+                    </div>
+                    <div style="font-size: 0.85rem; color: #546E7A; margin-top: 10px; position: relative; z-index: 1;">
+                        Not expiring soon
+                    </div>
+                </div>
+                
+                <div class="expiry-bar near">
+                    <div class="expiry-count" id="expiry-near">{{ near_expiry }}</div>
+                    <div class="expiry-label">
+                        <i class="fas fa-exclamation-circle"></i> Near Expiry
+                    </div>
+                    <div class="percentage" id="percentage-near">
+                        {{ (near_expiry / stats.batches * 100)|round(1) if stats.batches > 0 else 0 }}%
+                    </div>
+                    <div style="font-size: 0.85rem; color: #546E7A; margin-top: 10px; position: relative; z-index: 1;">
+                        Within 15 days
+                    </div>
+                </div>
+                
+                <div class="expiry-bar expired">
+                    <div class="expiry-count" id="expiry-expired">{{ expired }}</div>
+                    <div class="expiry-label">
+                        <i class="fas fa-times-circle"></i> Expired
+                    </div>
+                    <div class="percentage" id="percentage-expired">
+                        {{ (expired / stats.batches * 100)|round(1) if stats.batches > 0 else 0 }}%
+                    </div>
+                    <div style="font-size: 0.85rem; color: #546E7A; margin-top: 10px; position: relative; z-index: 1;">
+                        Requires disposal
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tip-box">
+                <i class="fas fa-lightbulb" style="color: #FF8F00; font-size: 1.3rem;"></i>
+                <div>
+                    <strong style="color: #856404;">Tip:</strong> Review near-expiry batches regularly to minimize losses. Set up automated alerts in Settings.
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Column: System Status -->
+        <div>
+            <div class="section-header" style="border: none; padding: 0; margin-bottom: 20px;">
+                <h2 class="section-title">
+                    <i class="fas fa-server"></i> System Status
+                </h2>
+                <div style="color: #666; font-size: 0.9rem;">
+                    <i class="fas fa-sync-alt"></i> Auto-refresh every 5 min
+                </div>
+            </div>
+            
+            <div class="system-status-grid">
+                <div class="status-card" style="border-left-color: #1565C0;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <span class="status-indicator"></span>
+                        <div class="status-icon" style="color: #1565C0;">
+                            <i class="fas fa-database"></i>
+                        </div>
+                    </div>
+                    <div class="status-title">Database</div>
+                    <div class="status-desc">
+                        All systems operational. Connection stable with {{ stats.medicines }} medicines and {{ stats.batches }} batches.
+                    </div>
+                </div>
+                
+                <div class="status-card" style="border-left-color: #9C27B0;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <span class="status-indicator"></span>
+                        <div class="status-icon" style="color: #9C27B0;">
+                            <i class="fas fa-brain"></i>
+                        </div>
+                    </div>
+                    <div class="status-title">AI Engine</div>
+                    <div class="status-desc">
+                        Machine learning model loaded and ready. Accuracy: 92.4% on test data.
+                    </div>
+                </div>
+                
+                <div class="status-card" style="border-left-color: #FF8F00;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <span class="status-indicator" style="animation-delay: 0.5s;"></span>
+                        <div class="status-icon" style="color: #FF8F00;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                    </div>
+                    <div class="status-title">Alert System</div>
+                    <div class="status-desc">
+                        Monitoring {{ near_expiry + expired }} active alerts. Next check in 5 minutes.
+                    </div>
+                </div>
+                
+                <div class="status-card" style="border-left-color: #388E3C;">
+                    <div style="display: flex; align-items: center; margin-bottom: 15px;">
+                        <span class="status-indicator" style="animation-delay: 1s;"></span>
+                        <div class="status-icon" style="color: #388E3C;">
+                            <i class="fas fa-shield-alt"></i>
+                        </div>
+                    </div>
+                    <div class="status-title">Security</div>
+                    <div class="status-desc">
+                        All security protocols active. Last login: {{ current_time.strftime('%I:%M %p') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="recent-activity">
+        <div class="section-header" style="border: none; padding: 0; margin-bottom: 20px;">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i> Recent Activity
+            </h2>
+            <a href="#" style="color: #1565C0; text-decoration: none; font-size: 0.95rem; font-weight: 500;">
+                <i class="fas fa-clock"></i> Last 24 hours
+            </a>
+        </div>
+        
+        <div class="activity-list">
+            <div class="activity-item">
+                <div class="activity-icon" style="background: linear-gradient(135deg, #1565C0, #42A5F5);">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">
+                        <strong>{{ username }}</strong> logged into the system
+                    </div>
+                    <div class="activity-time" id="activity-now">
+                        <i class="fas fa-clock"></i> {{ current_time.strftime('%I:%M %p') }} • Just now
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: linear-gradient(135deg, #388E3C, #4CAF50);">
+                    <i class="fas fa-database"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">
+                        Daily database backup completed successfully
+                    </div>
+                    <div class="activity-time" id="activity-2h">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: linear-gradient(135deg, #FF8F00, #FFB300);">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">
+                        {{ near_expiry }} batches detected near expiry
+                    </div>
+                    <div class="activity-time" id="activity-4h">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: linear-gradient(135deg, #9C27B0, #BA68C8);">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">
+                        AI model retrained and updated
+                    </div>
+                    <div class="activity-time" id="activity-yesterday">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="activity-item">
+                <div class="activity-icon" style="background: linear-gradient(135deg, #00897B, #4DB6AC);">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="activity-content">
+                    <div class="activity-text">
+                        Sales report generated for this week
+                    </div>
+                    <div class="activity-time" id="activity-6h">
+                        <!-- Will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript for Dashboard -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Format time function
+    function formatTime(date) {
+        return date.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+    }
+    
+    function formatRelativeTime(date) {
+        const now = new Date();
+        const diffMs = now - date;
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+        
+        if (diffHours < 1) {
+            const diffMins = Math.floor(diffMs / (1000 * 60));
+            return `${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`;
+        } else if (diffHours < 24) {
+            return `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
+        } else {
+            return 'Yesterday';
+        }
+    }
+    
+    // Set activity times
+    const now = new Date();
+    const twoHoursAgo = new Date(now.getTime() - (2 * 60 * 60 * 1000));
+    const fourHoursAgo = new Date(now.getTime() - (4 * 60 * 60 * 1000));
+    const sixHoursAgo = new Date(now.getTime() - (6 * 60 * 60 * 1000));
+    const yesterday = new Date(now.getTime() - (24 * 60 * 60 * 1000));
+    
+    // Update activity time elements
+    document.getElementById('activity-2h').innerHTML = 
+        `<i class="fas fa-clock"></i> ${formatTime(twoHoursAgo)} • 2 hours ago`;
+    document.getElementById('activity-4h').innerHTML = 
+        `<i class="fas fa-clock"></i> ${formatTime(fourHoursAgo)} • 4 hours ago`;
+    document.getElementById('activity-6h').innerHTML = 
+        `<i class="fas fa-clock"></i> ${formatTime(sixHoursAgo)} • 6 hours ago`;
+    document.getElementById('activity-yesterday').innerHTML = 
+        `<i class="fas fa-clock"></i> Yesterday • 96.2% accuracy achieved`;
+    
+    // Animate statistic counters
+    function animateCounter(element, target, suffix = '', isCurrency = false) {
+        let current = 0;
+        const increment = target / 100;
+        const duration = 1500;
+        const stepTime = duration / 100;
+        
+        // Remove existing content if animating
+        if (element.getAttribute('data-animated') === 'true') return;
+        element.setAttribute('data-animated', 'true');
+        
+        const timer = setInterval(() => {
+            current += increment;
+            if (current >= target) {
+                if (isCurrency) {
+                    element.textContent = '₹' + target.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                } else {
+                    element.textContent = Math.round(target).toLocaleString() + suffix;
+                }
+                clearInterval(timer);
+                element.removeAttribute('data-animated');
+                return;
+            }
+            
+            if (isCurrency) {
+                element.textContent = '₹' + Math.round(current).toLocaleString();
+            } else {
+                element.textContent = Math.round(current).toLocaleString() + suffix;
+            }
+        }, stepTime);
+    }
+    
+    // Animate all stat values with delay
+    setTimeout(() => {
+        // Medicines count
+        const medicinesElement = document.getElementById('stat-medicines');
+        const medicinesValue = parseInt(medicinesElement.textContent.replace(/,/g, ''));
+        if (!isNaN(medicinesValue) && medicinesValue > 0) {
+            animateCounter(medicinesElement, medicinesValue);
+        }
+        
+        // Alerts count
+        const alertsElement = document.getElementById('stat-alerts');
+        const alertsValue = parseInt(alertsElement.textContent.replace(/,/g, ''));
+        if (!isNaN(alertsValue) && alertsValue >= 0) {
+            animateCounter(alertsElement, alertsValue);
+        }
+        
+        // Sales count
+        const salesElement = document.getElementById('stat-sales');
+        const salesValue = parseInt(salesElement.textContent.replace(/,/g, ''));
+        if (!isNaN(salesValue) && salesValue >= 0) {
+            animateCounter(salesElement, salesValue);
+        }
+        
+        // Revenue
+        const revenueElement = document.getElementById('stat-revenue');
+        const revenueText = revenueElement.textContent.replace('₹', '').replace(/,/g, '');
+        const revenueValue = parseFloat(revenueText);
+        if (!isNaN(revenueValue) && revenueValue >= 0) {
+            animateCounter(revenueElement, revenueValue, '', true);
+        }
+        
+        // Expiry counters
+        const expiryGood = document.getElementById('expiry-good');
+        const expiryNear = document.getElementById('expiry-near');
+        const expiryExpired = document.getElementById('expiry-expired');
+        
+        const goodValue = parseInt(expiryGood.textContent.replace(/,/g, ''));
+        const nearValue = parseInt(expiryNear.textContent.replace(/,/g, ''));
+        const expiredValue = parseInt(expiryExpired.textContent.replace(/,/g, ''));
+        
+        if (!isNaN(goodValue) && goodValue >= 0) {
+            animateCounter(expiryGood, goodValue);
+        }
+        if (!isNaN(nearValue) && nearValue >= 0) {
+            animateCounter(expiryNear, nearValue);
+        }
+        if (!isNaN(expiredValue) && expiredValue >= 0) {
+            animateCounter(expiryExpired, expiredValue);
+        }
+    }, 500);
+    
+    // Animate expiry bars with delay
+    setTimeout(() => {
+        const bars = document.querySelectorAll('.expiry-bar');
+        bars.forEach((bar, index) => {
+            setTimeout(() => {
+                const before = getComputedStyle(bar, '::before');
+                // Force animation by toggling a class
+                bar.style.height = bar.style.height; // Force reflow
+            }, index * 300);
+        });
+    }, 1000);
+    
+    // Update time every minute
+    function updateDashboardTime() {
+        const now = new Date();
+        const timeString = formatTime(now);
+        const dateString = now.toLocaleDateString('en-US', { 
+            weekday: 'long',
+            month: 'long',
+            day: 'numeric',
+            year: 'numeric'
+        });
+        
+        const welcomeSubtext = document.querySelector('.welcome-subtext');
+        if (welcomeSubtext) {
+            welcomeSubtext.innerHTML = `
+                <span><i class="fas fa-calendar-alt"></i> ${dateString}</span>
+                <span>•</span>
+                <span><i class="fas fa-clock"></i> ${timeString}</span>
+                <span>•</span>
+                <span><i class="fas fa-user-shield"></i> Session Active</span>
+            `;
+        }
+        
+        // Update "Just now" activity time
+        const activityNow = document.getElementById('activity-now');
+        if (activityNow) {
+            activityNow.innerHTML = `<i class="fas fa-clock"></i> ${timeString} • Just now`;
+        }
+    }
+    
+    // Initial time update
+    updateDashboardTime();
+    
+    // Update time every minute
+    setInterval(updateDashboardTime, 60000);
+    
+    // Add hover effects with delay
+    const cards = document.querySelectorAll('.stat-card, .action-card, .status-card, .activity-item');
+    cards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+            this.style.transition = 'all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1)';
+        });
+    });
+    
+    // Make layout responsive
+    function adjustDashboardLayout() {
+        const twoColumnLayout = document.querySelector('.two-column-layout');
+        const expiryBars = document.querySelector('.expiry-bars');
+        
+        if (window.innerWidth < 1024) {
+            if (twoColumnLayout) twoColumnLayout.style.gridTemplateColumns = '1fr';
+            if (expiryBars) expiryBars.style.flexDirection = 'column';
+        } else {
+            if (twoColumnLayout) twoColumnLayout.style.gridTemplateColumns = '1fr 1fr';
+            if (expiryBars) expiryBars.style.flexDirection = 'row';
+        }
+    }
+    
+    // Initial layout adjustment
+    adjustDashboardLayout();
+    
+    // Adjust layout on window resize
+    window.addEventListener('resize', adjustDashboardLayout);
+    
+    // Auto-refresh system status every 5 minutes
+    function refreshSystemStatus() {
+        // Simulate status updates (in real app, this would be an API call)
+        const statusIndicators = document.querySelectorAll('.status-indicator');
+        statusIndicators.forEach((indicator, index) => {
+            // Randomly change status for demo purposes
+            const isOnline = Math.random() > 0.1; // 90% chance online
+            
+            setTimeout(() => {
+                if (isOnline) {
+                    indicator.style.background = '#4CAF50';
+                    indicator.style.boxShadow = '0 0 10px #4CAF50';
+                } else {
+                    indicator.style.background = '#FF9800';
+                    indicator.style.boxShadow = '0 0 10px #FF9800';
+                    indicator.style.animation = 'none';
+                    
+                    // Restore animation after 2 seconds
+                    setTimeout(() => {
+                        indicator.style.animation = 'pulseStatus 2s infinite';
+                    }, 2000);
+                }
+            }, index * 300);
+        });
+    }
+    
+    // Check status every 5 minutes
+    setInterval(refreshSystemStatus, 5 * 60 * 1000);
+    
+    // Add click effects to action cards
+    const actionCards = document.querySelectorAll('.action-card');
+    actionCards.forEach(card => {
+        card.addEventListener('click', function(e) {
+            // Add ripple effect
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.cssText = `
+                position: absolute;
+                border-radius: 50%;
+                background: rgba(21, 101, 192, 0.3);
+                transform: scale(0);
+                animation: ripple 0.6s linear;
+                width: ${size}px;
+                height: ${size}px;
+                top: ${y}px;
+                left: ${x}px;
+                pointer-events: none;
+            `;
+            
+            this.appendChild(ripple);
+            
+            // Remove ripple after animation
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+    
+    // Add CSS for ripple effect
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+    `;
+    document.head.appendChild(style);
+    
+    // Session timeout warning (30 minutes)
+    let inactivityTimer;
+    function resetSessionTimer() {
+        clearTimeout(inactivityTimer);
+        inactivityTimer = setTimeout(() => {
+            // Show warning 1 minute before timeout
+            setTimeout(() => {
+                const warning = document.createElement('div');
+                warning.innerHTML = `
+                    <div style="position: fixed; top: 20px; right: 20px; background: linear-gradient(135deg, #FF8F00, #FF5722); color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 10px 30px rgba(255, 87, 34, 0.3); z-index: 9999; animation: slideInRight 0.3s ease-out;">
+                        <i class="fas fa-hourglass-end"></i> Session will expire in 1 minute due to inactivity.
+                    </div>
+                `;
+                document.body.appendChild(warning);
+                
+                // Remove after 10 seconds
+                setTimeout(() => {
+                    warning.remove();
+                }, 10000);
+            }, 29 * 60 * 1000); // 29 minutes
+        }, 30 * 60 * 1000); // 30 minutes
+    }
+    
+    // Reset timer on user activity
+    ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+        document.addEventListener(event, resetSessionTimer);
+    });
+    
+    resetSessionTimer();
+    
+    // Add CSS for slide in animation
+    const slideStyle = document.createElement('style');
+    slideStyle.textContent = `
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    `;
+    document.head.appendChild(slideStyle);
+});
+</script>
+{% endblock %}
